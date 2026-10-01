@@ -2,7 +2,7 @@ name: EnglishFarm Journey V3 test and Windows build
 
 on:
   push:
-    branches: ["main", "codex/englishfarm-v1", "codex/v4-guide-rooms-reset"]
+    branches: ["main", "codex/englishfarm-v1"]
   workflow_dispatch:
 
 permissions:
