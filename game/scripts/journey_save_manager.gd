@@ -75,9 +75,13 @@ static func write_slot(slot:int,state_data:Dictionary,context:Dictionary,saved_a
  return ProgressStore.write_save(path,make_envelope("slot_"+str(slot),state_data,context,saved_at))
 
 static func read_envelope(path:String)->Dictionary:
- var data:=ProgressStore.read_save_with_backup(path)
- if data.is_empty() or not validate_envelope(data):return {}
- return data
+ var primary:Dictionary=ProgressStore.read_save(path)
+ if not primary.is_empty() and validate_envelope(primary):
+  return primary
+ var backup:Dictionary=ProgressStore.read_save(path+".bak")
+ if not backup.is_empty() and validate_envelope(backup):
+  return backup
+ return {}
 
 static func read_autosave()->Dictionary:
  return read_envelope(AUTOSAVE)
