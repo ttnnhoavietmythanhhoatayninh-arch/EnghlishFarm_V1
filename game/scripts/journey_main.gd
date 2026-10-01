@@ -543,7 +543,7 @@ func setup_people()->void:
  {"id":"home","name":"Momo","role":"Nhà của bạn","relation":"Căn nhà và khu vườn đầu tiên của bạn.","place":"Nông trại (Farm)","at":Vector2(200,690),"door":Vector2(190,680),"sprite":0,"level":1},
  {"id":"lily","name":"Lily","role":"Thủ thư","relation":"Người hướng dẫn học tập của Momo.","place":"Thư viện (Library)","at":Vector2(365,660),"door":Vector2(438,307),"sprite":0,"level":1},
  {"id":"tom","name":"Tom","role":"Nông dân","relation":"Hàng xóm dạy Momo chăm vườn.","place":"Khu vườn (Garden)","at":Vector2(440,640),"door":Vector2(450,650),"sprite":1,"level":1},
- {"id":"mia","name":"Mia","role":"Chủ tiệm","relation":"Khách hàng đầu tiên của Momo.","place":"Chợ (Market)","at":Vector2(920,580),"door":Vector2(961,600),"sprite":2,"level":2},
+ {"id":"mia","name":"Mia","role":"Chủ tiệm","relation":"Khách hàng đầu tiên của Momo.","place":"Chợ (Market)","at":Vector2(965,500),"door":Vector2(980,515),"exit":Vector2(980,560),"sprite":2,"level":2},
  {"id":"emma","name":"Emma","role":"Bưu tá","relation":"Bạn giúp Momo trao đổi thư từ.","place":"Bưu điện (Post Office)","at":Vector2(1090,751),"door":Vector2(1020,756),"sprite":0,"level":2},
  {"id":"ben","name":"Ben","role":"Thợ mộc","relation":"Người giúp Momo sửa nhà.","place":"Xưởng mộc (Workshop)","at":Vector2(275,520),"door":Vector2(250,514),"sprite":1,"level":3},
  {"id":"clara","name":"Clara","role":"Nhân viên ngân hàng","relation":"Người giữ thẻ tiết kiệm cho Momo.","place":"Ngân hàng (Bank)","at":Vector2(810,264),"door":Vector2(810,250),"sprite":2,"level":3},
@@ -676,7 +676,8 @@ func leave_room()->void:
  camera.enabled=true
  player.stop()
  if not n.is_empty():
-  player.position=n.door*2+Vector2(0,110)
+  var outside:Vector2=n.get("exit",n.door+Vector2(0,55))
+  player.position=outside*2
  hint.show()
  for b in command_buttons:b.show()
  get_viewport().gui_release_focus()
