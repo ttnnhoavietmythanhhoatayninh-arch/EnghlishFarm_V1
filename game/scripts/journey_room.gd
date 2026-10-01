@@ -109,7 +109,7 @@ func draw_room_shell(main:Color)->void:
  draw_rect(Rect2(170,165,940,435),main.lightened(0.26))
  for y in range(175,590,52):
   for x in range(180,1100,52):
-   var light:=((x/52+ y/52) as int)%2==0
+   var light:bool=int(x/52+y/52)%2==0
    draw_rect(Rect2(x,y,50,50),main.lightened(0.38 if light else 0.28))
  draw_rect(Rect2(170,100,940,65),Color("9e8063"))
  draw_rect(Rect2(205,112,150,92),Color("805f45"))
