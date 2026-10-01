@@ -75,9 +75,11 @@ func run()->void:
   assert(not g.dialog.visible,id+": leave_room hides dialog")
   assert(g.current_room=="" and g.pending_door=="" and g.pending_npc=="",id+": leave_room clears room state")
   var expected_exit:Vector2=Vector2(n.get("exit",n.door+Vector2(0,55)))*2
+  assert(g.nav.allowed(n.door*2),id+": building door must be on an allowed tile")
+  assert(g.nav.allowed(expected_exit),id+": building exit must be on an allowed tile")
+  assert(expected_exit.distance_to(n.door*2)>=80.0,id+": exit must be clear of the doorway")
+  assert(expected_exit.distance_to(n.door*2)<=180.0,id+": exit must stay near the doorway")
   assert(g.player.position==expected_exit,id+": Momo is placed at the safe outside point")
-  if id=="mia":
-   assert(g.nav.allowed(g.player.position),"mia: market exit must be on a walkable tile")
   for i in range(30):
    await process_frame
   assert(not g.interior.visible,id+": room stays hidden after 30 frames")
