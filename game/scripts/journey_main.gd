@@ -238,16 +238,16 @@ func show_guide(index:int)->void:
  var pages=[
  ["Bắt đầu từ một căn nhà nhỏ","WASD hoặc phím mũi tên để đi. Nhấp mặt đất để Momo tự đi tới. Nhấp NPC để đến nói chuyện, hoặc đứng gần và nhấn E. Nhấp biển cửa nhà để vào phòng. Esc hoặc × đóng nội dung."],
  ["Learn — học trước khi thử sức","Mở thẻ từ để học nghĩa Việt, giải thích Anh, phiên âm, trọng âm, cách dùng và ví dụ. Grammar có cấu trúc và cách dùng. Reading/Writing có hướng dẫn. Sau bước học, chọn Bắt đầu quiz. Sai thì đọc giải thích và thử lại."],
- ["Farm — biến kiến thức thành khu vườn","Đọc đúng 3 câu nhận 3 hạt. Plant: gieo một hạt vào ô trống. Water: tưới để cây không héo. Harvest: thu hoạch khi cây sẵn sàng. Bản thử cây lớn 20 giây, cần tưới trong 60 giây. Settings cho đổi sang12 giờ thực khi ruộng trống."],
- ["Letters, Settings và các nút khác","Letters: học cách viết, soạn thư, tự kiểm rồi gửi cho NPC. Settings: đổi độ khó, cỡ chữ, thời gian cây. Tasks: xem3 việc của cấp hiện tại. Map: bản đồ nhỏ góc phải, chấm cam là Momo. ? Help hoặc F1: mở lại hướng dẫn."],
- ["Làm gì để nhận được gì?","Từ mới đúng: +1 Word Card;3 từ/ngày: thêm3 cards. Bài đọc: hạt giống. Thu hoạch: cà rốt và cards. Giao3 cà rốt:8 cards,5 gỗ và tình bạn Mia. Powers dùng gợi ý. Hoàn thành mỗi nhiệm vụ làm đầy1/3 thanh cấp; đủ3 việc mở cấp tiếp theo và+1 Power."],
- ["Xe hàng, công cụ và nơi mới","Cấp2 có xe chở cà rốt đến Mia; chờ xe đến nơi mới nhận thưởng. Cấp3 mở Ben sửa nhà, Clara gửi/rút cards và Noah câu cá. Cấp4 mở vườn cây, áo mới và mua Powers. Những vùng phủ xanh chưa mở. Bấm Places trong Learn để học tên các địa điểm trước khi khám phá."]]
+ ["Farm — biến kiến thức thành khu vườn","Đọc đúng 3 câu nhận 3 hạt. Plant: gieo một hạt vào ô trống. Water: tưới để cây không héo. Harvest: thu hoạch khi cây sẵn sàng. Bản thử cây lớn 20 giây, cần tưới trong 60 giây. Settings cho đổi sang 12 giờ thực khi ruộng trống."],
+ ["Letters, Settings và các nút khác","Letters: học cách viết, soạn thư, tự kiểm rồi gửi cho NPC. Settings: đổi độ khó, cỡ chữ, thời gian cây. Tasks: xem 3 việc của cấp hiện tại. Map: bản đồ nhỏ góc phải, chấm cam là Momo. ? Help hoặc F1: mở lại hướng dẫn."],
+ ["Làm gì để nhận được gì?","Từ mới đúng: +1 Word Card; 3 từ/ngày: thêm 3 cards. Bài đọc: hạt giống. Thu hoạch: cà rốt và cards. Giao 3 cà rốt: 8 cards, 5 gỗ và tình bạn Mia. Powers dùng gợi ý. Hoàn thành mỗi nhiệm vụ làm đầy 1/3 thanh cấp; đủ 3 việc mở cấp tiếp theo và + 1 Power."],
+ ["Xe hàng, công cụ và nơi mới","Cấp 2 có xe chở cà rốt đến Mia; chờ xe đến nơi mới nhận thưởng. Cấp 3 mở Ben sửa nhà, Clara gửi/rút cards và Noah câu cá. Cấp 4 mở vườn cây, áo mới và mua Powers. Những vùng phủ xanh chưa mở. Bấm Places trong Learn để học tên các địa điểm trước khi khám phá."]]
  line(pages[index][0],22);line(pages[index][1])
  if index>0:make_button(body,"← Trang trước",func():show_guide(index-1))
  if index<5:make_button(body,"Tiếp theo →",func():show_guide(index+1))
  else:make_button(body,"Bắt đầu chơi",finish_guide)
 func finish_guide()->void:
- state.onboarded=true;dialog.hide();save_game();notify("Cấp1: học3 từ → đọc mở hạt → thu hoạch3 củ. Nhấn Tasks để theo dõi.")
+ state.onboarded=true;dialog.hide();save_game();notify("Cấp 1: học 3 từ → đọc mở hạt → thu hoạch 3 củ. Nhấn Tasks để theo dõi.")
 func open_learning()->void:
  if not state.difficulty_chosen:return
  open_dialog("learn","Learn • Học và luyện tập")
@@ -265,7 +265,7 @@ func show_vocabulary(index:int)->void:
  var all_seen:=true
  for i in range(3):
   if not seen_words.has(state.difficulty+":"+str(i)):all_seen=false
- if all_seen:make_button(body,"Đã học3 từ • Bắt đầu quiz",func():mark_studied("vocabulary");start_quiz("vocabulary"))
+ if all_seen:make_button(body,"Đã học 3 từ • Bắt đầu quiz",func():mark_studied("vocabulary");start_quiz("vocabulary"))
  make_button(body,"← Các mục học",open_learning)
 func speak(word:String)->void:
  var voices=DisplayServer.tts_get_voices_for_language("en")
@@ -284,7 +284,7 @@ func show_reading()->void:
  for step in curriculum.reading.steps:line(step)
  line(curriculum.reading.strategy,17);line(curriculum.reading.example)
  line("Đoạn đọc của bạn",22);line(lessons[state.difficulty].passage)
- make_button(body,"Đã đọc hướng dẫn • Trả lời3 câu",func():mark_studied("reading");start_quiz("reading"))
+ make_button(body,"Đã đọc hướng dẫn • Trả lời 3 câu",func():mark_studied("reading");start_quiz("reading"))
 func show_writing_lesson()->void:
  open_dialog("writing_lesson","Writing • Viết thư rõ ý")
  for step in curriculum.writing.steps:line(step)
@@ -343,11 +343,11 @@ func answer_quiz(answer:String)->void:
  state.complete_task(quiz_kind)
  changed();open_dialog("quiz_done","Hoàn thành • 3/3")
  line("Bạn đã vận dụng đúng kiến thức!",24)
- line("Đã nhận3 hạt giống nếu đây là lần hoàn thành đầu tiên ở mức này." if quiz_kind=="reading" else "Tiến trình đã lưu. Phần thưởng học từ được tính một lần; ôn có thưởng sau24 giờ.")
+ line("Đã nhận 3 hạt giống nếu đây là lần hoàn thành đầu tiên ở mức này." if quiz_kind=="reading" else "Tiến trình đã lưu. Phần thưởng học từ được tính một lần; ôn có thưởng sau 24 giờ.")
  make_button(body,"Xem nhiệm vụ tiếp theo",show_tasks)
 func show_tasks()->void:
  open_dialog("tasks","Level %d • Mục tiêu hôm nay"%state.level)
- line("Mỗi việc đúng cấp tăng1/3 thanh tiến trình. Đủ3 việc tự lên cấp và nhận1 Power.")
+ line("Mỗi việc đúng cấp tăng 1/3 thanh tiến trình. Đủ 3 việc tự lên cấp và nhận 1 Power.")
  for id in State.LEVEL_TASKS.get(state.level,[]):
   line(("✓ " if state.completed.has(id) else "○ ")+str(TASK_NAMES[id]),21)
   if not state.completed.has(id):make_button(body,"Thực hiện",func():route_task(id))
@@ -372,8 +372,8 @@ func show_writing()->void:
  writing.text_changed.connect(func():state.letter_draft=writing.text.left(10000);save_game())
  line("Tự kiểm: có lời chào • trả lời yêu cầu • thời gian/số lượng • lời kết. Thư chỉ lưu trên máy; chưa chấm AI.",16)
  make_button(body,"Tôi đã kiểm tra • Gửi cho Emma",func():
-  if state.level<2:message("Bài viết đã lưu; nhiệm vụ gửi thư mở ở cấp2.",false);return
-  if writing.text.strip_edges().split(" ",false).size()<10:message("Hãy viết ít nhất10 từ để thực hành một thư ngắn.",false);return
+  if state.level<2:message("Bài viết đã lưu; nhiệm vụ gửi thư mở ở cấp 2.",false);return
+  if writing.text.strip_edges().split(" ",false).size()<10:message("Hãy viết ít nhất 10 từ để thực hành một thư ngắn.",false);return
   var first:bool=state.complete_task("letter")
   if first:state.cards+=3;state.friendship["emma"]=1
   changed();message("Emma đã nhận thư. +3 cards cho lần đầu. Đây là xác nhận luyện tập, không phải đánh giá chất lượng tiếng Anh."))
@@ -381,16 +381,16 @@ func show_writing()->void:
 func show_farm()->void:
  open_dialog("farm","Farm • Khu vườn nhỏ")
  line("Hạt: %d | Cà rốt: %d\nPlant = gieo • Water = tưới • Harvest = thu hoạch"%[state.seeds,state.produce],17)
- line("Thử nhanh: lớn20 giây; héo sau60 giây không tưới." if state.demo_mode else "Thời gian thực: lớn12 giờ; cần tưới trong12 giờ.",16)
+ line("Thử nhanh: lớn 20 giây; héo sau 60 giây không tưới." if state.demo_mode else "Thời gian thực: lớn 12 giờ; cần tưới trong 12 giờ.",16)
  for i in range(6 if state.orchard_open else 3):
   var row:=HBoxContainer.new();body.add_child(row)
   var l:=Label.new();l.text="Ô%d • %s"%[i+1,state.crop_status(i,crop_time())];l.custom_minimum_size.x=165;row.add_child(l)
   for pair in [["Plant","plant"],["Water","water"],["Harvest","harvest"]]:make_button(row,pair[0],func():farm_action(pair[1],i),36)
  make_button(body,"Cập nhật tình trạng cây",show_farm)
- make_button(body,"Mua3 hạt • 3 cards",func():
+ make_button(body,"Mua 3 hạt • 3 cards",func():
   if state.unlocked.is_empty():message("Học và hoàn thành bài đọc để mở loại hạt trước.",false);return
-  if state.cards<3:message("Cần3 cards. Học từ mới hoặc ôn từ đến hạn để nhận thẻ.",false);return
-  state.cards-=3;state.seeds+=3;changed();show_farm();message("Đã mua3 hạt."))
+  if state.cards<3:message("Cần 3 cards. Học từ mới hoặc ôn từ đến hạn để nhận thẻ.",false);return
+  state.cards-=3;state.seeds+=3;changed();show_farm();message("Đã mua 3 hạt."))
  make_button(body,"Học hướng dẫn đọc để nhận hạt",show_reading)
 func farm_action(action:String,index:int)->void:
  var ok:=false
@@ -400,7 +400,7 @@ func farm_action(action:String,index:int)->void:
   "water":ok=state.water(index,crop_time())
   "harvest":ok=state.harvest(index,crop_time())>0
  changed();show_farm();refresh_crops()
- message("Xong! Harvest nhận1 cà rốt và2 cards." if ok and action=="harvest" else ("Đã thực hiện." if ok else "Kiểm tra hạt, tuổi cây hoặc hạn tưới. Ô héo có thể gieo lại."),ok)
+ message("Xong! Harvest nhận 1 cà rốt và 2 cards." if ok and action=="harvest" else ("Đã thực hiện." if ok else "Kiểm tra hạt, tuổi cây hoặc hạn tưới. Ô héo có thể gieo lại."),ok)
 func show_settings()->void:
  open_dialog("settings","Settings • Tùy chọn")
  line("Độ khó tiếng Anh",21)
@@ -409,7 +409,7 @@ func show_settings()->void:
  line("Cỡ chữ",21)
  var slider:=HSlider.new();slider.min_value=16;slider.max_value=24;slider.step=1;slider.value=state.text_size;body.add_child(slider)
  slider.value_changed.connect(func(v):state.text_size=int(v);ui.theme.default_font_size=int(v);save_game();message("Cỡ chữ áp dụng khi mở lại nội dung."))
- var trial:=CheckButton.new();trial.text="Cây lớn nhanh20 giây (tắt =12 giờ)";trial.button_pressed=state.demo_mode;body.add_child(trial)
+ var trial:=CheckButton.new();trial.text="Cây lớn nhanh 20 giây (tắt = 12 giờ)";trial.button_pressed=state.demo_mode;body.add_child(trial)
  trial.toggled.connect(func(on):
   for p in state.plots:
    if not p.is_empty():trial.set_pressed_no_signal(state.demo_mode);message("Hãy thu hoạch hoặc dọn hết cây trước khi đổi thời gian.",false);return
@@ -553,7 +553,7 @@ func leave_room()->void:
   player.position=n.door*2+Vector2(0,110)
  get_viewport().gui_release_focus()
 func show_bank()->void:
- if state.level<3:notify("Ngân hàng mở ở cấp3.");return
+ if state.level<3:notify("Ngân hàng mở ở cấp 3.");return
  open_dialog("bank","Bank • Sổ tiết kiệm")
  line("Wallet: %d cards\nSavings: %d cards"%[state.cards,state.bank_balance],24)
  line("Deposit = gửi vào • Withdraw = rút ra. Chỉ là thẻ trong game; không lãi/phí.")
@@ -561,13 +561,13 @@ func show_bank()->void:
   make_button(body,"Deposit %d cards"%amount,func():var ok:bool=state.deposit(amount);changed();show_bank();message("Đã gửi thẻ." if ok else "Không đủ thẻ trong ví.",ok))
   make_button(body,"Withdraw %d cards"%amount,func():var ok:bool=state.withdraw(amount);changed();show_bank();message("Đã rút thẻ." if ok else "Không đủ thẻ tiết kiệm.",ok))
 func show_fishing()->void:
- if state.level<3:notify("Bến câu mở ở cấp3.");return
+ if state.level<3:notify("Bến câu mở ở cấp 3.");return
  open_dialog("fishing","Fishing • Câu cá với Noah")
  line("Rod = cần câu • fish = cá • catch = bắt",20)
- line("1. Thả câu. 2. Quan sát kim chạy. 3. Bấm Kéo khi kim ở40–70. Đúng nhận1 cá,+3 cards; thưởng tối đa1 lần/ngày.")
+ line("1. Thả câu. 2. Quan sát kim chạy. 3. Bấm Kéo khi kim ở 40–70. Đúng nhận 1 cá, +3 cards; thưởng tối đa 1 lần/ngày.")
  fishing_slider=ProgressBar.new();fishing_slider.max_value=100;fishing_slider.custom_minimum_size.y=32;body.add_child(fishing_slider)
  line("Vùng bắt cá: 40–70",21)
- make_button(body,"Thả câu",func():fishing_elapsed=0;fishing_running=true;message("Chờ kim vào khoảng40–70 rồi Kéo!"))
+ make_button(body,"Thả câu",func():fishing_elapsed=0;fishing_running=true;message("Chờ kim vào khoảng 40–70 rồi Kéo!"))
  make_button(body,"Kéo!",func():
   if not fishing_running:message("Hãy thả câu trước.",false);return
   fishing_running=false
@@ -576,9 +576,9 @@ func show_fishing()->void:
   changed();message("Bắt được cá! +3 cards." if ok else ("Hôm nay đã nhận thưởng câu cá; có thể tập lại." if in_zone else "Chưa đúng lúc. Thả câu và thử lại nhé."),ok))
 func show_shop()->void:
  open_dialog("shop","Workshop & shop • Mở rộng")
- line("Các lựa chọn mở ở cấp4. Mỗi lựa chọn cần cards và chỉ hoàn thành nhiệm vụ cấp một lần.")
- if state.level<4:line("Hãy hoàn thành3 việc mỗi cấp. Hiện tại: cấp%d."%state.level);return
- for row in [["Mở vườn cây • 6 cards",state.expand_orchard],["Mũ mới • 4 cards",state.buy_outfit],["Mua1 Power • 3 cards",state.buy_power]]:
+ line("Các lựa chọn mở ở cấp 4. Mỗi lựa chọn cần cards và chỉ hoàn thành nhiệm vụ cấp một lần.")
+ if state.level<4:line("Hãy hoàn thành 3 việc mỗi cấp. Hiện tại: cấp%d."%state.level);return
+ for row in [["Mở vườn cây • 6 cards",state.expand_orchard],["Mũ mới • 4 cards",state.buy_outfit],["Mua 1 Power • 3 cards",state.buy_power]]:
   make_button(body,row[0],func():var ok:bool=row[1].call();changed();message("Đã mở / mua thành công." if ok else "Không đủ cards hoặc vật phẩm đã sở hữu.",ok))
  if state.orchard_open:line("Vườn cây đã mở ở phía nam nông trại. 6 ô gieo trồng đã sẵn sàng.")
 func build_world_objects()->void:
@@ -592,8 +592,8 @@ func prepare_truck_route()->void:
  if truck_route.is_empty():
   state.delivery_active=false;save_game();notify("Xe chưa tìm được đường. Hàng vẫn được giữ; thử lại.")
 func begin_delivery()->void:
- if not state.start_delivery():message("Nhận đơn và chuẩn bị3 củ cà rốt trước; xe không nhận hai chuyến cùng lúc.",false);return
- player.stop();prepare_truck_route();close_dialog();changed();notify("Xe đang chở3 cà rốt tới chợ. Thưởng nhận khi xe đến nơi.")
+ if not state.start_delivery():message("Nhận đơn và chuẩn bị 3 củ cà rốt trước; xe không nhận hai chuyến cùng lúc.",false);return
+ player.stop();prepare_truck_route();close_dialog();changed();notify("Xe đang chở 3 cà rốt tới chợ. Thưởng nhận khi xe đến nơi.")
 func tick_delivery(delta:float)->void:
  if not state.delivery_active:return
  if truck_route.is_empty():prepare_truck_route()
