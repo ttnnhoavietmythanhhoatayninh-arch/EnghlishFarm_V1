@@ -78,6 +78,8 @@ var tutorial_image:TextureRect
 var tutorial_controls:HBoxContainer
 var tutorial_page:=0
 var tutorial_reviewing:=false
+var main_menu_panel:PanelContainer
+var main_menu_box:VBoxContainer
 var pending_npc:=""
 var pending_door:=""
 var npc_data:Array=[]
@@ -184,14 +186,16 @@ func _ready()->void:
  if not pending_restore_context.is_empty():
   apply_loaded_context(pending_restore_context)
   pending_restore_context={}
- if not state.difficulty_chosen:
+ if persistence_enabled:
+  show_start_menu()
+ elif not state.difficulty_chosen:
   if v4_tutorial_available():show_v4_tutorial(0,false)
   else:show_difficulty()
  elif not state.onboarded:
   if v4_tutorial_available():show_v4_tutorial(state.tutorial_index+1,false)
   else:show_guide(state.tutorial_index)
- else:notify("Chào Momo! Nhấn ? để xem hướng dẫn; Tasks để xem việc cần làm.")
- save_game()
+ else:
+  notify("Chào Momo! Nhấn ? để xem hướng dẫn; Tasks để xem việc cần làm.")
 func current_texture()->Texture2D:return world if state.house_level>=2 else starter
 func locked_regions()->Array[Rect2]:
  var regions:Array[Rect2]=[]
@@ -244,6 +248,15 @@ func build_ui()->void:
    if nav.allowed(target):player.walk_to(target)
    else:notify("Khu vực này chưa mở. Hoàn thành 3 nhiệm vụ để lên cấp."))
  mv.add_child(minimap);map_panel.hide()
+ main_menu_panel=PanelContainer.new()
+ main_menu_panel.position=Vector2(390,105)
+ main_menu_panel.size=Vector2(500,510)
+ main_menu_panel.mouse_filter=Control.MOUSE_FILTER_STOP
+ ui.add_child(main_menu_panel)
+ main_menu_box=VBoxContainer.new()
+ main_menu_box.add_theme_constant_override("separation",12)
+ main_menu_panel.add_child(main_menu_box)
+ main_menu_panel.hide()
  dialog=PanelContainer.new();dialog.position=Vector2(704,110);dialog.size=Vector2(550,360);ui.add_child(dialog)
  var outer:=VBoxContainer.new();outer.add_theme_constant_override("separation",8);dialog.add_child(outer)
  var header:=HBoxContainer.new();outer.add_child(header)
@@ -280,6 +293,102 @@ func build_ui()->void:
  room_ui=Control.new();room_ui.theme=ui.theme;room_ui.mouse_filter=Control.MOUSE_FILTER_IGNORE;room_ui.z_index=30;room_layer.add_child(room_ui);room_ui.hide()
  room_hint=Label.new();room_hint.position=Vector2(480,505);room_hint.custom_minimum_size=Vector2(320,42);room_hint.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
  room_hint.add_theme_stylebox_override("normal",Style.box("fff0c9","738b53",10));room_ui.add_child(room_hint)
+func rebuild_start_menu()->void:
+ for child in main_menu_box.get_children():
+  main_menu_box.remove_child(child)
+  child.queue_free()
+ var heading:=Label.new()
+ heading.text="EnglishFarm Journey"
+ heading.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
+ heading.add_theme_font_size_override("font_size",30)
+ main_menu_box.add_child(heading)
+ var sub:=Label.new()
+ sub.text="Momo đang chờ bạn tiếp tục hành trình học tiếng Anh."
+ sub.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
+ sub.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
+ main_menu_box.add_child(sub)
+ var auto:=SaveManager.read_autosave()
+ var continue_btn:=make_button(main_menu_box,"Tiếp tục",continue_from_menu,54)
+ continue_btn.disabled=auto.is_empty()
+ continue_btn.tooltip_text="Chưa có autosave hợp lệ." if auto.is_empty() else "Tiếp tục từ autosave gần nhất."
+ make_button(main_menu_box,"Game mới",start_new_game,54)
+ make_button(main_menu_box,"Tải game",show_load_menu,54)
+ make_button(main_menu_box,"Cài đặt",show_settings,50)
+ make_button(main_menu_box,"Thoát",func():get_tree().quit(),50)
+ var note:=Label.new()
+ note.text="Game mới chỉ thay autosave hiện tại; 3 ô lưu thủ công được giữ nguyên."
+ note.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
+ note.add_theme_font_size_override("font_size",15)
+ main_menu_box.add_child(note)
+
+func show_start_menu()->void:
+ dialog.hide()
+ if tutorial_panel!=null:tutorial_panel.hide()
+ rebuild_start_menu()
+ main_menu_panel.show()
+ screen="start_menu"
+ player.stop()
+
+func continue_from_menu()->void:
+ if SaveManager.read_autosave().is_empty():
+  rebuild_start_menu()
+  return
+ main_menu_panel.hide()
+ screen=""
+ if not state.difficulty_chosen:
+  if v4_tutorial_available():show_v4_tutorial(0,false)
+  else:show_difficulty()
+ elif not state.onboarded:
+  if v4_tutorial_available():show_v4_tutorial(state.tutorial_index+1,false)
+  else:show_guide(state.tutorial_index)
+ else:
+  notify("Đã tiếp tục từ autosave.")
+
+func start_new_game()->void:
+ SaveManager.remove_autosave()
+ state=State.new()
+ nav.unlocked_level=1
+ quest_level=1
+ pending_npc=""
+ pending_door=""
+ fishing_running=false
+ room_has_target=false
+ if player.get_parent()!=self:player.reparent(self)
+ interior.hide()
+ room_ui.hide()
+ current_room=""
+ player.get_node("Camera2D").enabled=true
+ player.global_position=Vector2(400,1380)
+ world_player_position=player.global_position
+ refresh_hud()
+ update_world()
+ refresh_crops()
+ main_menu_panel.hide()
+ screen=""
+ if v4_tutorial_available():show_v4_tutorial(0,false)
+ else:show_difficulty()
+
+func show_load_menu()->void:
+ open_dialog("load_menu","Tải game")
+ line("Chọn một ô lưu thủ công. Dữ liệu chỉ thay phiên hiện tại sau khi bản lưu được kiểm tra hợp lệ.",17)
+ for slot in [1,2,3]:
+  var meta:=SaveManager.read_slot(slot)
+  var label_text:="Ô %d • Trống"%slot
+  if not meta.is_empty():
+   label_text="Ô %d • Lv.%d • %s"%[slot,int(meta.state.get("level",1)),str(meta.state.get("difficulty","easy"))]
+  var b:=make_button(body,label_text,func(s=slot):load_slot_from_menu(s),48)
+  b.disabled=meta.is_empty()
+ make_button(body,"← Menu chính",func():dialog.hide();show_start_menu(),42)
+
+func load_slot_from_menu(slot:int)->void:
+ if load_runtime_result(SaveManager.load_slot_state(slot,State)):
+  main_menu_panel.hide()
+  dialog.hide()
+  screen=""
+  if not state.onboarded:
+   if v4_tutorial_available():show_v4_tutorial(state.tutorial_index+1,false)
+   else:show_guide(state.tutorial_index)
+
 func v4_tutorial_available()->bool:
  for path in V4_GUIDE_ASSETS:
   if not ResourceLoader.exists(path):
@@ -379,7 +488,7 @@ func rich_line(text:String,height:int=58)->RichTextLabel:
  body.add_child(r)
  return r
 func open_dialog(id:String,title:String)->void:
- if not state.difficulty_chosen and id!="difficulty":return
+ if not state.difficulty_chosen and id not in ["difficulty","settings","load_menu"]:return
  screen=id;fishing_running=false;player.stop();pending_npc="";pending_door=""
  for c in body.get_children():body.remove_child(c);c.queue_free()
  title_label.text=title;feedback.text="";feedback.modulate=Color.WHITE;close_button.disabled=false
@@ -405,7 +514,7 @@ func message(text:String,good:bool=true)->void:
  feedback.text=text;feedback.modulate=Color("466635") if good else Color("a44c32")
 func notify(text:String)->void:toast.text=text;toast.show();toast_timer=6.0
 func save_game()->void:
- if not persistence_enabled:return
+ if not persistence_enabled or not state.difficulty_chosen:return
  if not SaveManager.write_autosave(state.to_dict(),current_save_context(),now()):
   notify("Không lưu được. Kiểm tra dung lượng và quyền ghi trên máy.")
  else:
@@ -455,7 +564,7 @@ func changed()->void:
 
 func _process(delta:float)->void:
  elapsed+=delta
- player.locked=not state.onboarded or dialog.visible or (tutorial_panel!=null and tutorial_panel.visible) or interior.visible or state.delivery_active
+ player.locked=(main_menu_panel!=null and main_menu_panel.visible) or not state.onboarded or dialog.visible or (tutorial_panel!=null and tutorial_panel.visible) or interior.visible or state.delivery_active
  if interior.visible and not dialog.visible:
   process_room_movement(delta)
  if not interior.visible:
@@ -507,7 +616,7 @@ func _unhandled_input(event:InputEvent)->void:
    return
   var focus:=get_viewport().gui_get_focus_owner()
   if focus is LineEdit or focus is TextEdit:return
-  if event.keycode==KEY_F1:show_guide(0);return
+  if event.keycode==KEY_F1:show_help();return
   if event.keycode==KEY_M:
    toggle_map()
    return
