@@ -48,7 +48,7 @@ static func read_save_with_backup(path: String) -> Dictionary:
 static func remove_save_family(path: String) -> bool:
     var ok := true
     for suffix in ["",".bak",".tmp"]:
-        var candidate := path+suffix
+        var candidate:String = path+str(suffix)
         if FileAccess.file_exists(candidate):
             ok = DirAccess.remove_absolute(ProjectSettings.globalize_path(candidate)) == OK and ok
     return ok
