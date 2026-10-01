@@ -540,14 +540,14 @@ func show_settings()->void:
  line("Tự lưu trên máy. Không cần tài khoản. Không thu giọng nói. File tiến trình V3 riêng, bản cũ vẫn được giữ.",16)
 func setup_people()->void:
  npc_data=[
- {"id":"home","name":"Momo","role":"Nhà của bạn","relation":"Căn nhà và khu vườn đầu tiên của bạn.","place":"Nông trại (Farm)","at":Vector2(200,690),"door":Vector2(190,680),"sprite":0,"level":1},
- {"id":"lily","name":"Lily","role":"Thủ thư","relation":"Người hướng dẫn học tập của Momo.","place":"Thư viện (Library)","at":Vector2(365,660),"door":Vector2(438,307),"sprite":0,"level":1},
- {"id":"tom","name":"Tom","role":"Nông dân","relation":"Hàng xóm dạy Momo chăm vườn.","place":"Khu vườn (Garden)","at":Vector2(440,640),"door":Vector2(450,650),"sprite":1,"level":1},
+ {"id":"home","name":"Momo","role":"Nhà của bạn","relation":"Căn nhà và khu vườn đầu tiên của bạn.","place":"Nông trại (Farm)","at":Vector2(200,690),"door":Vector2(190,680),"exit":Vector2(190,735),"sprite":0,"level":1},
+ {"id":"lily","name":"Lily","role":"Thủ thư","relation":"Người hướng dẫn học tập của Momo.","place":"Thư viện (Library)","at":Vector2(365,660),"door":Vector2(438,307),"exit":Vector2(438,362),"sprite":0,"level":1},
+ {"id":"tom","name":"Tom","role":"Nông dân","relation":"Hàng xóm dạy Momo chăm vườn.","place":"Khu vườn (Garden)","at":Vector2(440,640),"door":Vector2(450,650),"exit":Vector2(450,705),"sprite":1,"level":1},
  {"id":"mia","name":"Mia","role":"Chủ tiệm","relation":"Khách hàng đầu tiên của Momo.","place":"Chợ (Market)","at":Vector2(965,500),"door":Vector2(980,515),"exit":Vector2(980,560),"sprite":2,"level":2},
- {"id":"emma","name":"Emma","role":"Bưu tá","relation":"Bạn giúp Momo trao đổi thư từ.","place":"Bưu điện (Post Office)","at":Vector2(1090,751),"door":Vector2(1020,756),"sprite":0,"level":2},
- {"id":"ben","name":"Ben","role":"Thợ mộc","relation":"Người giúp Momo sửa nhà.","place":"Xưởng mộc (Workshop)","at":Vector2(275,520),"door":Vector2(250,514),"sprite":1,"level":3},
- {"id":"clara","name":"Clara","role":"Nhân viên ngân hàng","relation":"Người giữ thẻ tiết kiệm cho Momo.","place":"Ngân hàng (Bank)","at":Vector2(810,264),"door":Vector2(810,250),"sprite":2,"level":3},
- {"id":"noah","name":"Noah","role":"Người câu cá","relation":"Bạn dạy Momo câu cá.","place":"Bến câu (Pier)","at":Vector2(1340,781),"door":Vector2(1310,778),"sprite":1,"level":3}]
+ {"id":"emma","name":"Emma","role":"Bưu tá","relation":"Bạn giúp Momo trao đổi thư từ.","place":"Bưu điện (Post Office)","at":Vector2(1090,751),"door":Vector2(1020,756),"exit":Vector2(1020,811),"sprite":0,"level":2},
+ {"id":"ben","name":"Ben","role":"Thợ mộc","relation":"Người giúp Momo sửa nhà.","place":"Xưởng mộc (Workshop)","at":Vector2(275,520),"door":Vector2(250,514),"exit":Vector2(250,569),"sprite":1,"level":3},
+ {"id":"clara","name":"Clara","role":"Nhân viên ngân hàng","relation":"Người giữ thẻ tiết kiệm cho Momo.","place":"Ngân hàng (Bank)","at":Vector2(810,264),"door":Vector2(810,250),"exit":Vector2(810,305),"sprite":2,"level":3},
+ {"id":"noah","name":"Noah","role":"Người câu cá","relation":"Bạn dạy Momo câu cá.","place":"Bến câu (Pier)","at":Vector2(1340,781),"door":Vector2(1310,778),"exit":Vector2(1310,833),"sprite":1,"level":3}]
  for n in npc_data:
   if n.id!="home":
    var node:=Node2D.new();var v=art.animated("npcs",{"idle":[n.sprite,n.sprite+3]},62.0);node.add_child(v);v.play("idle")
@@ -818,7 +818,11 @@ func build_world_objects()->void:
  truck=load("res://game/scripts/journey_truck.gd").new();add_child(truck);truck.hide()
  if state.delivery_active:prepare_truck_route()
 func prepare_truck_route()->void:
- truck_route=nav.find_path(Vector2(220,680)*2,Vector2(920,580)*2)
+ var mia:=npc_by_id("mia")
+ if mia.is_empty():
+  state.delivery_active=false
+  return
+ truck_route=nav.find_path(Vector2(220,680)*2,Vector2(mia.at)*2)
  if truck_route.is_empty():
   state.delivery_active=false;save_game();notify("Xe chưa tìm được đường. Hàng vẫn được giữ; thử lại.")
 func begin_delivery()->void:
@@ -835,7 +839,10 @@ func tick_delivery(delta:float)->void:
  truck.position=truck_route[a].lerp(truck_route[b],offset-a);truck.z_index=int(truck.position.y)+1;truck.show()
  player.position=truck.position;player.hide()
  if state.delivery_seconds>=12:
-  var ok:bool=state.finish_delivery();truck.hide();player.show();player.position=Vector2(920,580)*2;changed()
+  var ok:bool=state.finish_delivery();truck.hide();player.show()
+  var mia:=npc_by_id("mia")
+  player.position=(Vector2(mia.get("exit",mia.at)) if not mia.is_empty() else Vector2(980,560))*2
+  changed()
   if ok:notify("Mia đã nhận hàng! +8 cards, +5 gỗ và tình bạn. Xem Tasks để làm việc tiếp theo.")
 func update_world()->void:
  nav.unlocked_level=state.level
