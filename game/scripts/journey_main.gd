@@ -18,6 +18,18 @@ const GUIDE_PAGES=[
  ["Cần hỗ trợ? Các nút ở đây","1. ? Help hoặc F1: Mở lại toàn bộ hướng dẫn.\n\n2. Settings = Cài đặt: Đổi độ khó, cỡ chữ và thời gian cây lớn.\n\n3. Map = Bản đồ: Xem vị trí Momo và các nơi trong thị trấn.\n\nMuốn đổi thời gian cây, hãy thu hoạch hoặc dọn hết cây trước. Tiến trình tự lưu."]
 ]
 const LEGACY_SAVE="user://englishfarm_journey_v3.json"
+const V4_GUIDE_ASSETS=[
+ "res://game/assets/v4/guides/00-start.webp",
+ "res://game/assets/v4/guides/01-move.webp",
+ "res://game/assets/v4/guides/02-learn.webp",
+ "res://game/assets/v4/guides/03-seeds.webp",
+ "res://game/assets/v4/guides/04-farm.webp",
+ "res://game/assets/v4/guides/05-tasks.webp",
+ "res://game/assets/v4/guides/06-rewards.webp",
+ "res://game/assets/v4/guides/07-delivery-letters.webp",
+ "res://game/assets/v4/guides/08-places.webp",
+ "res://game/assets/v4/guides/09-help.webp"
+]
 const TASK_NAMES={"vocabulary":"Học và nhớ 3 từ","reading":"Học cách đọc, mở 3 hạt","harvest":"Thu hoạch 3 củ cà rốt","delivery":"Giao hàng cho Mia","grammar":"Học và làm ngữ pháp","letter":"Học viết và gửi thư","house":"Nâng cấp căn nhà","fishing":"Câu được một con cá","bank":"Gửi thẻ vào ngân hàng","orchard":"Mở vườn cây ăn quả","outfit":"Mua trang phục","power":"Mua thêm một Power"}
 var state=State.new()
 var art:RefCounted
@@ -61,6 +73,11 @@ var quiz_answers:Array=[]
 var quiz_input:LineEdit
 var seen_words:Dictionary={}
 var guide_index:=0
+var tutorial_panel:PanelContainer
+var tutorial_image:TextureRect
+var tutorial_controls:HBoxContainer
+var tutorial_page:=0
+var tutorial_reviewing:=false
 var pending_npc:=""
 var pending_door:=""
 var npc_data:Array=[]
@@ -167,8 +184,12 @@ func _ready()->void:
  if not pending_restore_context.is_empty():
   apply_loaded_context(pending_restore_context)
   pending_restore_context={}
- if not state.difficulty_chosen:show_difficulty()
- elif not state.onboarded:show_guide(state.tutorial_index)
+ if not state.difficulty_chosen:
+  if v4_tutorial_available():show_v4_tutorial(0,false)
+  else:show_difficulty()
+ elif not state.onboarded:
+  if v4_tutorial_available():show_v4_tutorial(state.tutorial_index+1,false)
+  else:show_guide(state.tutorial_index)
  else:notify("Chào Momo! Nhấn ? để xem hướng dẫn; Tasks để xem việc cần làm.")
  save_game()
 func current_texture()->Texture2D:return world if state.house_level>=2 else starter
@@ -232,6 +253,26 @@ func build_ui()->void:
  body=VBoxContainer.new();body.custom_minimum_size.x=482;body.size_flags_horizontal=Control.SIZE_EXPAND_FILL;body.add_theme_constant_override("separation",10);scroll.add_child(body)
  feedback=Label.new();feedback.custom_minimum_size=Vector2(480,46);feedback.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART;outer.add_child(feedback)
  dialog.hide()
+ tutorial_panel=PanelContainer.new()
+ tutorial_panel.position=Vector2(35,5)
+ tutorial_panel.size=Vector2(1210,705)
+ tutorial_panel.mouse_filter=Control.MOUSE_FILTER_STOP
+ ui.add_child(tutorial_panel)
+ var tutorial_root:=Control.new()
+ tutorial_panel.add_child(tutorial_root)
+ tutorial_image=TextureRect.new()
+ tutorial_image.position=Vector2(55,8)
+ tutorial_image.size=Vector2(1100,618)
+ tutorial_image.expand_mode=TextureRect.EXPAND_IGNORE_SIZE
+ tutorial_image.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+ tutorial_image.mouse_filter=Control.MOUSE_FILTER_IGNORE
+ tutorial_root.add_child(tutorial_image)
+ tutorial_controls=HBoxContainer.new()
+ tutorial_controls.position=Vector2(48,632)
+ tutorial_controls.size=Vector2(1115,58)
+ tutorial_controls.add_theme_constant_override("separation",10)
+ tutorial_root.add_child(tutorial_controls)
+ tutorial_panel.hide()
  room_layer=CanvasLayer.new();room_layer.layer=-1;add_child(room_layer)
  # Room is placed on layer 2, UI on layer 3 so dialogs stay visible.
  room_layer.layer=2;layer.layer=3
@@ -239,6 +280,90 @@ func build_ui()->void:
  room_ui=Control.new();room_ui.theme=ui.theme;room_ui.mouse_filter=Control.MOUSE_FILTER_IGNORE;room_ui.z_index=30;room_layer.add_child(room_ui);room_ui.hide()
  room_hint=Label.new();room_hint.position=Vector2(480,505);room_hint.custom_minimum_size=Vector2(320,42);room_hint.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
  room_hint.add_theme_stylebox_override("normal",Style.box("fff0c9","738b53",10));room_ui.add_child(room_hint)
+func v4_tutorial_available()->bool:
+ for path in V4_GUIDE_ASSETS:
+  if not ResourceLoader.exists(path):
+   return false
+ return true
+
+func clear_tutorial_controls()->void:
+ for child in tutorial_controls.get_children():
+  tutorial_controls.remove_child(child)
+  child.queue_free()
+
+func tutorial_button(text_value:String,action:Callable,width:float=190.0)->Button:
+ var b:=make_button(tutorial_controls,text_value,action,50)
+ b.custom_minimum_size.x=width
+ return b
+
+func show_v4_tutorial(page:int,reviewing:bool=false)->void:
+ if not v4_tutorial_available():
+  if not state.difficulty_chosen:show_difficulty()
+  else:show_guide(clampi(page-1,0,GUIDE_PAGES.size()-1))
+  return
+ tutorial_reviewing=reviewing or state.onboarded
+ tutorial_page=clampi(page,0,V4_GUIDE_ASSETS.size()-1)
+ if tutorial_page>0 and not state.difficulty_chosen:
+  tutorial_page=0
+ if tutorial_page>0 and not state.onboarded:
+  state.tutorial_index=tutorial_page-1
+  save_game()
+ player.stop()
+ pending_npc=""
+ pending_door=""
+ dialog.hide()
+ map_panel.hide()
+ tutorial_image.texture=load(V4_GUIDE_ASSETS[tutorial_page])
+ clear_tutorial_controls()
+ if tutorial_page==0:
+  for item in [["Easy • Dễ","easy"],["Normal • Vừa","normal"],["Hard • Khó","hard"]]:
+   var mode:String=item[1]
+   var label_text:String=item[0]+(" ✓" if state.difficulty_chosen and state.difficulty==mode else "")
+   tutorial_button(label_text,func():select_v4_difficulty(mode),245)
+  if state.difficulty_chosen:
+   tutorial_button("Tiếp →",func():show_v4_tutorial(1,tutorial_reviewing),190)
+ else:
+  tutorial_button("← Trước",func():show_v4_tutorial(tutorial_page-1,tutorial_reviewing),170)
+  if tutorial_page<V4_GUIDE_ASSETS.size()-1:
+   tutorial_button("Tiếp →",func():show_v4_tutorial(tutorial_page+1,tutorial_reviewing),170)
+  else:
+   tutorial_button("Bắt đầu chơi",finish_v4_tutorial,220)
+  tutorial_button("Bỏ qua",skip_v4_tutorial,150)
+  tutorial_button("× Đóng",close_v4_tutorial,150)
+ tutorial_panel.show()
+ screen="tutorial_v4"
+
+func select_v4_difficulty(mode:String)->void:
+ if state.choose_difficulty(mode):
+  save_game()
+  show_v4_tutorial(1,tutorial_reviewing)
+
+func finish_v4_tutorial()->void:
+ if not state.onboarded:
+  state.onboarded=true
+ state.tutorial_index=8
+ tutorial_panel.hide()
+ screen=""
+ save_game()
+ notify("Bắt đầu cấp 1: học 3 từ → làm bài đọc nhận hạt → thu hoạch 3 củ.")
+
+func skip_v4_tutorial()->void:
+ if not state.onboarded:
+  state.onboarded=true
+ tutorial_panel.hide()
+ screen=""
+ save_game()
+ notify("Đã đóng hướng dẫn. Mở lại bằng ? Help hoặc F1.")
+
+func close_v4_tutorial()->void:
+ # During first onboarding, close acts as an explicit skip so Momo is never left permanently locked.
+ if not state.onboarded:
+  skip_v4_tutorial()
+  return
+ tutorial_panel.hide()
+ screen=""
+ save_game()
+
 func make_button(parent:Node,text:String,action:Callable,height:int=42)->Button:
  var b:=Button.new();b.text=text;b.custom_minimum_size.y=height;b.pressed.connect(action);parent.add_child(b);return b
 func line(text:String,size:int=18)->Label:
@@ -330,7 +455,7 @@ func changed()->void:
 
 func _process(delta:float)->void:
  elapsed+=delta
- player.locked=not state.onboarded or dialog.visible or interior.visible or state.delivery_active
+ player.locked=not state.onboarded or dialog.visible or (tutorial_panel!=null and tutorial_panel.visible) or interior.visible or state.delivery_active
  if interior.visible and not dialog.visible:
   process_room_movement(delta)
  if not interior.visible:
@@ -372,6 +497,10 @@ func _process(delta:float)->void:
 
 func _unhandled_input(event:InputEvent)->void:
  if event is InputEventKey and event.pressed and not event.echo:
+  if tutorial_panel!=null and tutorial_panel.visible:
+   if event.keycode==KEY_ESCAPE:close_v4_tutorial()
+   elif event.keycode==KEY_F1:show_v4_tutorial(0,true)
+   return
   if event.keycode==KEY_ESCAPE:
    if dialog.visible:close_dialog()
    elif interior.visible:leave_room()
@@ -468,7 +597,8 @@ func finish_guide()->void:
  notify("Bắt đầu cấp 1: học 3 từ → làm bài đọc nhận hạt → thu hoạch 3 củ. Bấm Tasks (Nhiệm vụ) để theo dõi.")
 
 func show_help()->void:
- show_guide(0)
+ if v4_tutorial_available():show_v4_tutorial(0,true)
+ else:show_guide(0)
 func tip_once(key:String,text:String)->void:
  var flag:="tip:"+key
  if state.studied.get(flag,false):return
