@@ -10,6 +10,7 @@ const SLOT_PATHS={
 }
 const SCHEMA_VERSION=4
 const CONTENT_VERSION="englishfarm-journey-v4"
+const MIGRATION_MARKER=ROOT+"/v3_migrated.flag"
 const VALID_ROOMS=["","home","tom","lily","mia","emma","ben","clara","noah"]
 
 static func ensure_root()->bool:
@@ -141,7 +142,20 @@ static func load_slot_state(slot:int,state_script:Script)->Dictionary:
  var path:=slot_path(slot)
  return {"ok":false,"error":"invalid_slot"} if path.is_empty() else load_state(path,state_script)
 
+static func migration_done()->bool:
+ return FileAccess.file_exists(MIGRATION_MARKER)
+
+static func mark_migration_done()->bool:
+ if not ensure_root():return false
+ var file:=FileAccess.open(MIGRATION_MARKER,FileAccess.WRITE)
+ if file==null:return false
+ file.store_string(str(Time.get_unix_time_from_system()))
+ file.flush()
+ file.close()
+ return true
+
 static func migrate_v3(path:String,state_script:Script)->Dictionary:
+ if migration_done():return {"ok":false,"error":"already_migrated"}
  var legacy:=ProgressStore.read_save_with_backup(path)
  if legacy.is_empty():return {"ok":false,"error":"no_legacy"}
  if int(legacy.get("version",-1))!=1 or int(legacy.get("journey_version",-1))!=1:
@@ -164,6 +178,8 @@ static func migrate_v3(path:String,state_script:Script)->Dictionary:
  var verify:=load_autosave_state(state_script)
  if not bool(verify.get("ok",false)):
   return {"ok":false,"error":"migration_verify_failed"}
+ if not mark_migration_done():
+  return {"ok":false,"error":"migration_marker_failed"}
  return {"ok":true,"state":verify.state,"context":verify.context,"meta":verify.meta}
 
 static func remove_slot(slot:int)->bool:
