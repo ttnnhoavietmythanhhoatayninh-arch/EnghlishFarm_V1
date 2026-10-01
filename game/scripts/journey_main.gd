@@ -46,6 +46,7 @@ var interior:Node2D
 var room_layer:CanvasLayer
 var room_ui:Control
 var room_hint:Label
+var room_npc:Node2D
 var room_target:=Vector2.ZERO
 var room_has_target:=false
 var command_buttons:Array[Button]=[]
@@ -284,9 +285,10 @@ func _unhandled_input(event:InputEvent)->void:
     if Rect2(obj.rect).grow(12).has_point(point):
      room_action(str(obj.action))
      return
-   if Rect2(data.floor_rect).has_point(point):
-    room_target=point
-    room_has_target=true
+   var walk_area:Rect2=data.get("walk_area",data.floor_rect)
+   if walk_area.has_point(point):
+    room_target=interior.safe_room_point(point,18.0)
+    room_has_target=interior.room_point_walkable(room_target,18.0)
   return
  if not state.onboarded or dialog.visible or state.delivery_active:return
  if event is InputEventMouseButton and event.pressed:
@@ -691,14 +693,16 @@ func enter_room(id:String)->void:
   player.reparent(room_layer)
  var camera:Camera2D=player.get_node("Camera2D")
  camera.enabled=false
- player.position=Vector2(640,500)
+ player.position=interior.safe_room_point(Vector2(640,500),18.0)
  player.show()
+ spawn_room_npc(id)
  tip_once("room","Nhấn Esc để ra ngoài.")
  update_room_hint()
 
 func leave_room()->void:
  var room_id:=current_room
  var n:=npc_by_id(room_id)
+ clear_room_npc()
  interior.hide()
  room_ui.hide()
  dialog.hide()
@@ -735,25 +739,57 @@ func has_walkable_step(from:Vector2,toward:Vector2=Vector2.INF)->bool:
 
 func process_room_movement(delta:float)->void:
  if current_room.is_empty():return
- var data:Dictionary=interior.room_data(current_room)
- var floor:Rect2=data.floor_rect
  var move:Vector2=Input.get_vector("move_left","move_right","move_up","move_down")
- var motion:Vector2=Vector2.ZERO
+ var motion:=Vector2.ZERO
  if move.length_squared()>0.01:
   room_has_target=false
   motion=move.normalized()*260.0*minf(delta,0.05)
  elif room_has_target:
+  if not interior.room_point_walkable(room_target,18.0):
+   room_target=interior.safe_room_point(room_target,18.0)
   var distance:float=player.position.distance_to(room_target)
-  if distance<5:
+  if distance<5.0:
    room_has_target=false
   else:
    motion=player.position.direction_to(room_target)*minf(260.0*minf(delta,0.05),distance)
  if motion!=Vector2.ZERO:
-  var next:Vector2=player.position+motion
-  next.x=clampf(next.x,floor.position.x+24,floor.end.x-24)
-  next.y=clampf(next.y,floor.position.y+24,floor.end.y-24)
-  player.position=next
+  # Resolve each axis separately so Momo slides along furniture instead of
+  # tunnelling through a desk/cabinet on diagonal input.
+  var x_step:=Vector2(player.position.x+motion.x,player.position.y)
+  if interior.room_point_walkable(x_step,18.0):
+   player.position=x_step
+  var y_step:=Vector2(player.position.x,player.position.y+motion.y)
+  if interior.room_point_walkable(y_step,18.0):
+   player.position=y_step
  update_room_hint()
+
+func clear_room_npc()->void:
+ if room_npc!=null and is_instance_valid(room_npc):
+  room_npc.queue_free()
+ room_npc=null
+
+func spawn_room_npc(id:String)->void:
+ clear_room_npc()
+ if id=="home":return
+ var n:=npc_by_id(id)
+ if n.is_empty():return
+ var data:Dictionary=interior.room_data(id)
+ room_npc=Node2D.new()
+ room_npc.position=data.get("npc_pos",Vector2(1030,455))
+ room_npc.z_index=int(room_npc.position.y)
+ var sprite=art.animated("npcs",{"idle":[int(n.sprite),int(n.sprite)+3]},62.0)
+ sprite.play("idle")
+ room_npc.add_child(sprite)
+ var label:=Label.new()
+ label.text=str(n.name)
+ label.position=Vector2(-70,-100)
+ label.size=Vector2(140,30)
+ label.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
+ label.add_theme_font_size_override("font_size",16)
+ label.add_theme_color_override("font_color",Color("342b24"))
+ label.add_theme_stylebox_override("normal",Style.box("f9edcd","738b53",8))
+ room_npc.add_child(label)
+ room_layer.add_child(room_npc)
 
 func nearest_room_object()->Dictionary:
  if current_room.is_empty():return {}
@@ -797,9 +833,43 @@ func room_action(action:String)->void:
   "mia_order":interact_npc("mia")
   "writing_lesson":show_writing_lesson()
   "repair":show_workshop()
+  "upgrade":show_workshop()
   "bank":show_bank()
+  "balance":show_balance()
   "farm":show_farm()
+  "farm_help":show_farm_help()
   "fishing":show_fishing()
+  "rewards":show_rewards()
+
+func show_balance()->void:
+ if state.level<3:
+  notify("Ngân hàng mở ở cấp 3.")
+  return
+ open_dialog("balance","Két sắt Clara • Số dư")
+ line("Ví: %d cards"%state.cards,24)
+ line("Tiết kiệm: %d cards"%state.bank_balance,24)
+ line("Đây là Word Cards trong game, không phải tiền thật.",16)
+ make_button(body,"Gửi / Rút tại quầy",show_bank)
+
+func show_farm_help()->void:
+ open_dialog("farm_help","Nhà vườn Tom • Hướng dẫn")
+ line("1. Gieo (Plant): cần có hạt và một ô đất trống.",18)
+ line("2. Tưới (Water): tưới sau khi gieo để cây tiếp tục phát triển.",18)
+ line("3. Thu hoạch (Harvest): khi cây sẵn sàng, nhận cà rốt và Cards.",18)
+ line("Học bài Reading để nhận hạt lần đầu; có thể mua thêm hạt sau khi đã mở loại hạt.",16)
+ make_button(body,"Mở Farm",show_farm)
+
+func show_rewards()->void:
+ if state.level<3:
+  notify("Bến câu mở ở cấp 3.")
+  return
+ open_dialog("rewards","Thùng thưởng Noah")
+ line("Cá đã bắt: %d"%state.fish,24)
+ line("Cards hiện có: %d"%state.cards,22)
+ line("Powers hiện có: %d"%state.powers,22)
+ line("Câu đúng trong vùng 40–70 nhận 1 cá và +3 Cards; phần thưởng câu cá tính tối đa một lần/ngày.",16)
+ make_button(body,"Đi câu cá",show_fishing)
+
 func show_workshop()->void:
  if state.level<3:
   notify("Xưởng mở ở cấp 3.")
