@@ -1,4 +1,20 @@
 extends "res://game/scripts/farm_navigation.gd"
+# Rectangles use source-image pixels (1536 x 1024), scaled exactly once below.
+const OBSTACLES:Array[Rect2]=[
+ Rect2(928,602,152,118), # Post office; leave east corridor to Noah open.
+ Rect2(104,582,126,80), # Momo's house, stop at the front path.
+ Rect2(935,337,158,186), # Market building and stalls.
+ Rect2(1114,331,174,183), # Eastern shop walls.
+ Rect2(318,106,215,164), # Library walls.
+ Rect2(543,142,129,121), # Northern building.
+ Rect2(761,78,206,141), # Bank building; preserve entrance apron.
+ Rect2(300,739,48,12), # Farm lower fence segments; keep gate open.
+ Rect2(235,751,60,12),
+ Rect2(370,723,44,12),
+ Rect2(443,676,12,32),
+ Rect2(1440,380,80,360), # Open water beyond the bridge.
+ Rect2(1410,870,100,100) # Water south of the pier.
+]
 func configure_regions() -> void:
  # Walkable surfaces traced in source-image pixels; base class scales by 2.
  _polygon([[515,375],[650,355],[825,350],[875,393],[911,455],[955,570],[914,625],[826,634],[650,634],[510,585]])
@@ -24,5 +40,7 @@ func configure_regions() -> void:
  _polygon([[920,583],[1142,537],[1239,514],[1289,518],[1283,556],[1174,574],[980,629]])
  _polygon([[1231,517],[1291,523],[1356,560],[1410,563],[1420,600],[1340,594],[1280,566],[1212,565]])
  _polygon([[1110,726],[1150,689],[1168,619],[1211,609],[1209,696],[1252,744],[1353,754],[1387,781],[1380,817],[1250,793],[1195,751],[1134,782]])
+ for rect in OBSTACLES:
+  blocked.append(Rect2(rect.position*SCALE,rect.size*SCALE))
  for rect in [Rect2(641,429,133,100),Rect2(631,367,154,54),Rect2(578,579,75,32),Rect2(758,578,92,30)]:
   blocked.append(Rect2(rect.position*SCALE,rect.size*SCALE).grow(8))

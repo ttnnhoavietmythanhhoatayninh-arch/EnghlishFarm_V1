@@ -22,7 +22,7 @@ func _initialize()->void:
    name=dir.get_next()
   dir.list_dir_end()
  for failure in failures:
-  push_error(failure)
+  printerr("FAIL: " + failure)
  if not failures.is_empty():
   push_error("Spacing violations: "+str(failures.size()))
   quit(1)

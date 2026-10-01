@@ -4,7 +4,7 @@ var failures := 0
 func check(condition: bool, message: String) -> void:
  if not condition:
   failures += 1
-  printerr(message)
+  printerr("FAIL: " + message)
 func _initialize() -> void:
  var s = State.new()
  check(s.learn_word("seed", 100000), "first word rewarded")
@@ -46,4 +46,5 @@ func _initialize() -> void:
  check(not restored.load_from(path), "corrupt save rejected")
  DirAccess.remove_absolute(path)
  print("Learning state failures: ", failures)
- quit(failures)
+ if failures == 0: print("LEARNING_STATE_TESTS_PASSED")
+ quit(1 if failures > 0 else 0)

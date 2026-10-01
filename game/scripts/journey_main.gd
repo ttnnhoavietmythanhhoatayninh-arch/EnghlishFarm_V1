@@ -17,6 +17,7 @@ const GUIDE_PAGES=[
  ["Cần hỗ trợ? Các nút ở đây","1. ? Help hoặc F1: Mở lại toàn bộ hướng dẫn.\n\n2. Settings = Cài đặt: Đổi độ khó, cỡ chữ và thời gian cây lớn.\n\n3. Map = Bản đồ: Xem vị trí Momo và các nơi trong thị trấn.\n\nMuốn đổi thời gian cây, hãy thu hoạch hoặc dọn hết cây trước. Tiến trình tự lưu."]
 ]
 const SAVE="user://englishfarm_journey_v3.json"
+var save_path:=SAVE # Tests inject a separate path; production retains the V3 file.
 const TASK_NAMES={"vocabulary":"Học và nhớ 3 từ","reading":"Học cách đọc, mở 3 hạt","harvest":"Thu hoạch 3 củ cà rốt","delivery":"Giao hàng cho Mia","grammar":"Học và làm ngữ pháp","letter":"Học viết và gửi thư","house":"Nâng cấp căn nhà","fishing":"Câu được một con cá","bank":"Gửi thẻ vào ngân hàng","orchard":"Mở vườn cây ăn quả","outfit":"Mua trang phục","power":"Mua thêm một Power"}
 var state=State.new()
 var art:RefCounted
@@ -82,7 +83,7 @@ func _ready()->void:
  world=load("res://game/assets/town.png");starter=load("res://game/assets/town_starter.png")
  curriculum=JSON.parse_string(FileAccess.get_file_as_string("res://data/curriculum_v3.json"))
  lessons=JSON.parse_string(FileAccess.get_file_as_string("res://data/learning_v1.json"))
- if persistence_enabled:state.load_from(SAVE)
+ if persistence_enabled:state.load_from(save_path)
  state.claim_login(now());nav.unlocked_level=state.level;quest_level=state.level
  player.configure(art,nav);player.position=Vector2(200,690)*2;world_player_position=player.position
  player.get_node("Camera2D").zoom=Vector2.ONE*0.85
@@ -203,7 +204,7 @@ func message(text:String,good:bool=true)->void:
  feedback.text=text;feedback.modulate=Color("466635") if good else Color("a44c32")
 func notify(text:String)->void:toast.text=text;toast.show();toast_timer=6.0
 func save_game()->void:
- if persistence_enabled and not state.save_to(SAVE):notify("Không lưu được. Kiểm tra dung lượng và quyền ghi trên máy.")
+ if persistence_enabled and not state.save_to(save_path):notify("Không lưu được. Kiểm tra dung lượng và quyền ghi trên máy.")
 func refresh_hud()->void:
  hud.text="Lv.%d • %d/3 việc  |  Cards %d  |  Powers %d"%[state.level,state.level_points(),state.cards,state.powers]
  if state.level==5:hud.text="Lv.5 • Hoàn thành chương thử  | Cards %d | Powers %d"%[state.cards,state.powers]
@@ -572,8 +573,8 @@ func show_reset_confirm()->void:
  erase.custom_minimum_size.x=260
 
 func erase_save_file()->bool:
- if not FileAccess.file_exists(SAVE):return true
- return DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE))==OK
+ if not FileAccess.file_exists(save_path):return true
+ return DirAccess.remove_absolute(ProjectSettings.globalize_path(save_path))==OK
 
 func reset_game_data()->void:
  if not erase_save_file():
@@ -586,7 +587,7 @@ func setup_people()->void:
  {"id":"home","name":"Momo","role":"Nhà của bạn","relation":"Căn nhà và khu vườn đầu tiên của bạn.","place":"Nông trại (Farm)","at":Vector2(200,690),"door":Vector2(190,680),"exit":Vector2(190,735),"sprite":0,"level":1},
  {"id":"lily","name":"Lily","role":"Thủ thư","relation":"Người hướng dẫn học tập của Momo.","place":"Thư viện (Library)","at":Vector2(365,660),"door":Vector2(438,307),"exit":Vector2(438,362),"sprite":0,"level":1},
  {"id":"tom","name":"Tom","role":"Nông dân","relation":"Hàng xóm dạy Momo chăm vườn.","place":"Khu vườn (Garden)","at":Vector2(440,640),"door":Vector2(450,650),"exit":Vector2(450,705),"sprite":1,"level":1},
- {"id":"mia","name":"Mia","role":"Chủ tiệm","relation":"Khách hàng đầu tiên của Momo.","place":"Chợ (Market)","at":Vector2(965,500),"door":Vector2(980,515),"exit":Vector2(980,560),"sprite":2,"level":2},
+ {"id":"mia","name":"Mia","role":"Chủ tiệm","relation":"Khách hàng đầu tiên của Momo.","place":"Chợ (Market)","at":Vector2(920,580),"door":Vector2(940,590),"exit":Vector2(940,645),"sprite":2,"level":2},
  {"id":"emma","name":"Emma","role":"Bưu tá","relation":"Bạn giúp Momo trao đổi thư từ.","place":"Bưu điện (Post Office)","at":Vector2(1090,751),"door":Vector2(1020,756),"exit":Vector2(1020,811),"sprite":0,"level":2},
  {"id":"ben","name":"Ben","role":"Thợ mộc","relation":"Người giúp Momo sửa nhà.","place":"Xưởng mộc (Workshop)","at":Vector2(275,520),"door":Vector2(250,514),"exit":Vector2(250,569),"sprite":1,"level":3},
  {"id":"clara","name":"Clara","role":"Nhân viên ngân hàng","relation":"Người giữ thẻ tiết kiệm cho Momo.","place":"Ngân hàng (Bank)","at":Vector2(810,264),"door":Vector2(810,250),"exit":Vector2(810,305),"sprite":2,"level":3},
@@ -616,7 +617,7 @@ func interact_npc(id:String)->void:
  var n:=npc_by_id(id)
  if n.is_empty():return
  if state.level<n.level:
-  notify("%s mở ở cấp%d."%[n.place,n.level])
+  notify("%s mở ở cấp %d."%[n.place,n.level])
   return
  if id=="home":
   pending_npc=""
@@ -682,9 +683,10 @@ func enter_room(id:String)->void:
   if c!=room_hint:c.queue_free()
  room_hint.show()
  var data:Dictionary=interior.room_data(id)
- var leave:=make_button(room_ui,"← Ra ngoài (Esc)",leave_room,50)
- leave.position=Vector2(535,550)
- leave.size=Vector2(210,48)
+ var leave:=make_button(room_ui,"Ra ngoài (Esc)",leave_room,50)
+ leave.position=Vector2(535,540)
+ leave.custom_minimum_size=Vector2(210,50)
+ leave.size=Vector2(210,50)
  if player.get_parent()!=room_layer:
   player.reparent(room_layer)
  var camera:Camera2D=player.get_node("Camera2D")
@@ -712,18 +714,24 @@ func leave_room()->void:
  camera.enabled=true
  player.stop()
  if not n.is_empty():
-  var requested_exit:Vector2=Vector2(n.get("exit",n.door+Vector2(0,55)))*2
-  var safe_exit:Vector2=nav.safe_walkable_near(requested_exit)
-  if safe_exit.is_finite():
-   player.global_position=safe_exit
-  else:
-   var safe_door:Vector2=nav.safe_walkable_near(Vector2(n.door)*2)
-   player.global_position=safe_door if safe_door.is_finite() else Vector2(n.door)*2
+  var requested_exit:Vector2=n.door*2+Vector2(0,110)
+  var exit_pt:Vector2=safe_walkable_near(requested_exit)
+  if not nav.allowed(exit_pt) or not nav.is_walkable(exit_pt,12.0) or not has_walkable_step(exit_pt):
+   exit_pt=safe_walkable_near(n.at*2)
+  if not nav.allowed(exit_pt) or not nav.is_walkable(exit_pt,12.0) or not has_walkable_step(exit_pt):
+   exit_pt=safe_walkable_near(Vector2(200,690)*2)
+  player.global_position=exit_pt
  world_player_position=player.global_position
  player.locked=not state.onboarded or state.delivery_active
  hint.show()
  for b in command_buttons:b.show()
  get_viewport().gui_release_focus()
+
+func safe_walkable_near(pt:Vector2)->Vector2:
+ return nav.safe_walkable_near(pt)
+
+func has_walkable_step(from:Vector2,toward:Vector2=Vector2.INF)->bool:
+ return nav.has_walkable_step(from,toward)
 
 func process_room_movement(delta:float)->void:
  if current_room.is_empty():return
