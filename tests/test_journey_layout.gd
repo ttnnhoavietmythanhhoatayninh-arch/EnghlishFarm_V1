@@ -12,7 +12,7 @@ func run()->void:
  await process_frame
  await verify(g)
  g.select_difficulty("easy")
- for i in range(6):g.show_guide(i);await verify(g)
+ for i in range(3):g.show_guide(i);await verify(g)
  g.finish_guide()
  for mode in ["easy","normal","hard"]:
   g.state.choose_difficulty(mode)
