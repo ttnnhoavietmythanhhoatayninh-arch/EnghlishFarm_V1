@@ -173,8 +173,8 @@ func draw_runtime_market()->void:
  draw_rect(Rect2(65,70,1150,495),Color("b8c7ad"))
  for y in range(320,570,48):
   for x in range(72,1210,48):
-   var light:=((x/48)+(y/48)) as int
-   draw_rect(Rect2(x,y,46,46),Color("d9c697") if light%2==0 else Color("c3aa7d"))
+   var tile_index:int=int(x/48)+int(y/48)
+   draw_rect(Rect2(x,y,46,46),Color("d9c697") if tile_index%2==0 else Color("c3aa7d"))
  draw_rect(Rect2(430,205,420,125),Color("6b4b34"))
  draw_rect(Rect2(445,195,390,78),Color("e0bf83"))
  for shelf_x in [205,845]:
