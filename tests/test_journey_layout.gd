@@ -12,7 +12,8 @@ func run()->void:
  await process_frame
  await verify(g)
  g.select_difficulty("easy")
- for i in range(3):g.show_guide(i);await verify(g)
+ assert(g.GUIDE_PAGES.size()==9,"V4 guide must contain 9 steps")
+ for i in range(g.GUIDE_PAGES.size()):g.show_guide(i);await verify(g)
  g.finish_guide()
  for mode in ["easy","normal","hard"]:
   g.state.choose_difficulty(mode)
@@ -21,6 +22,11 @@ func run()->void:
   g.show_reading();await verify(g)
   g.show_writing_lesson();await verify(g)
  g.show_settings();await verify(g)
+ var reset_found:=false
+ for child in g.body.get_children():
+  if child is Button and "Xóa dữ liệu game" in child.text:reset_found=true
+ assert(reset_found,"Settings must expose Reset data button")
+ g.show_reset_confirm();await verify(g)
  g.show_farm();await verify(g)
  g.show_places();await verify(g)
  for level in [1,2,3,4]:
