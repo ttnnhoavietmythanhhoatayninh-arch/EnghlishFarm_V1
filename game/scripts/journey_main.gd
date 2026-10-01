@@ -1009,7 +1009,7 @@ func show_settings()->void:
    var pos_key:="room_player_position" if not room_name.is_empty() else "world_player_position"
    if room_name.is_empty():room_name="town"
    var saved_pos:Vector2=SaveManager.json_to_vec(meta.context.get(pos_key,{}),Vector2.ZERO)
-   label_text="Ô %d • Lv.%d • %s • %s (%.0f, %.0f) • %s"%[slot_id,int(meta.state.get("level",1)),str(meta.state.get("difficulty","easy")),room_name,saved_pos.x,saved_pos.y,stamp]
+   label_text="Ô %d • Lv.%d • %s • %s (%d, %d) • %s"%[slot_id,int(meta.state.get("level",1)),str(meta.state.get("difficulty","easy")),room_name,int(round(saved_pos.x)),int(round(saved_pos.y)),stamp]
   var label_slot:=Label.new()
   label_slot.text=label_text
   label_slot.custom_minimum_size.x=255
