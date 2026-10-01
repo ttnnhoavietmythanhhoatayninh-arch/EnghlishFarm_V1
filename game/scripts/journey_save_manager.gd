@@ -93,15 +93,46 @@ static func read_slot(slot:int)->Dictionary:
  return {} if path.is_empty() else read_envelope(path)
 
 static func load_state(path:String,state_script:Script)->Dictionary:
- var envelope:=read_envelope(path)
- if envelope.is_empty():return {"ok":false,"error":"invalid_save"}
+ return load_envelope_state(read_envelope(path),state_script)
+
+static func load_envelope_state(envelope:Dictionary,state_script:Script)->Dictionary:
+ if envelope.is_empty() or not validate_envelope(envelope):
+  return {"ok":false,"error":"invalid_save"}
  var temp_path:=ROOT+"/.validate_state.json"
- if not ProgressStore.write_save(temp_path,envelope.state):return {"ok":false,"error":"validate_write_failed"}
+ if not ensure_root() or not ProgressStore.write_save(temp_path,envelope.state):
+  return {"ok":false,"error":"validate_write_failed"}
  var candidate=state_script.new()
  var ok:bool=candidate.load_from(temp_path)
  ProgressStore.remove_save_family(temp_path)
  if not ok:return {"ok":false,"error":"invalid_state"}
  return {"ok":true,"state":candidate,"context":envelope.context,"meta":envelope}
+
+static func export_current(path:String,state_data:Dictionary,context:Dictionary,saved_at:int)->bool:
+ if path.is_empty():return false
+ var envelope:=make_envelope("export",state_data,context,saved_at)
+ var temp:=path+".tmp"
+ var file:=FileAccess.open(temp,FileAccess.WRITE)
+ if file==null:return false
+ file.store_string(JSON.stringify(envelope))
+ file.flush()
+ file.close()
+ if FileAccess.file_exists(path):
+  DirAccess.remove_absolute(path)
+ return DirAccess.rename_absolute(temp,path)==OK
+
+static func import_state(path:String,state_script:Script)->Dictionary:
+ if path.is_empty() or not FileAccess.file_exists(path):
+  return {"ok":false,"error":"missing_file"}
+ var file:=FileAccess.open(path,FileAccess.READ)
+ if file==null or file.get_length()>1048576:
+  return {"ok":false,"error":"file_too_large"}
+ var text:=file.get_as_text()
+ file.close()
+ var parser:=JSON.new()
+ if parser.parse(text)!=OK or not parser.data is Dictionary:
+  return {"ok":false,"error":"invalid_json"}
+ var envelope:Dictionary=parser.data
+ return load_envelope_state(envelope,state_script)
 
 static func load_autosave_state(state_script:Script)->Dictionary:
  return load_state(AUTOSAVE,state_script)
