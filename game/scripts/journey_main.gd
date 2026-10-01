@@ -588,10 +588,7 @@ func interact_npc(id:String)->void:
    make_button(body,"Học viết thư",show_writing_lesson)
   "ben":
    line("Dùng 5 gỗ để sửa nhà. Gỗ nhận từ đơn hàng của Mia.")
-   make_button(body,"Sửa nhà • 5 gỗ",func():
-    var ok:bool=state.improve_home()
-    changed()
-    message("Nhà đã được nâng cấp!" if ok else "Cần 5 gỗ hoặc nhà đã được sửa.",ok))
+   make_button(body,"Mở bàn thợ",show_workshop)
   "clara":
    line("Gửi hoặc rút Word Cards trong sổ tiết kiệm của Momo.")
    make_button(body,"Mở sổ tiết kiệm",show_bank)
@@ -734,10 +731,29 @@ func room_action(action:String)->void:
   "places":show_places()
   "mia_order":interact_npc("mia")
   "writing_lesson":show_writing_lesson()
-  "repair":interact_npc("ben")
+  "repair":show_workshop()
   "bank":show_bank()
   "farm":show_farm()
   "fishing":show_fishing()
+func show_workshop()->void:
+ if state.level<3:
+  notify("Xưởng mở ở cấp 3.")
+  return
+ open_dialog("workshop","Xưởng Ben • Sửa nhà")
+ line("Gỗ: %d / 5"%state.wood,24)
+ var progress:=ProgressBar.new()
+ progress.max_value=5
+ progress.value=min(state.wood,5)
+ progress.show_percentage=false
+ progress.custom_minimum_size=Vector2(470,24)
+ body.add_child(progress)
+ line("Dùng 5 gỗ để nâng cấp căn nhà của Momo.",18)
+ make_button(body,"Sửa nhà • 5 gỗ",func():
+  var ok:bool=state.improve_home()
+  changed()
+  show_workshop()
+  message("Nhà đã được nâng cấp!" if ok else "Cần 5 gỗ hoặc nhà đã được sửa.",ok),48)
+
 func show_bank()->void:
  if state.level<3:notify("Ngân hàng mở ở cấp 3.");return
  open_dialog("bank","Bank • Sổ tiết kiệm")
@@ -760,13 +776,27 @@ func show_fishing()->void:
   var in_zone:bool=fishing_position>=0.4 and fishing_position<=0.7
   var ok:bool=state.catch_fish(in_zone)
   changed();message("Bắt được cá! +3 cards." if ok else ("Hôm nay đã nhận thưởng câu cá; có thể tập lại." if in_zone else "Chưa đúng lúc. Thả câu và thử lại nhé."),ok))
+
 func show_shop()->void:
- open_dialog("shop","Workshop & shop • Mở rộng")
- line("Các lựa chọn mở ở cấp 4. Mỗi lựa chọn cần cards và chỉ hoàn thành nhiệm vụ cấp một lần.")
- if state.level<4:line("Hãy hoàn thành 3 việc mỗi cấp. Hiện tại: cấp%d."%state.level);return
- for row in [["Mở vườn cây • 6 cards",state.expand_orchard],["Mũ mới • 4 cards",state.buy_outfit],["Mua 1 Power • 3 cards",state.buy_power]]:
-  make_button(body,row[0],func():var ok:bool=row[1].call();changed();message("Đã mở / mua thành công." if ok else "Không đủ cards hoặc vật phẩm đã sở hữu.",ok))
- if state.orchard_open:line("Vườn cây đã mở ở phía nam nông trại. 6 ô gieo trồng đã sẵn sàng.")
+ open_dialog("shop","Cửa hàng Mia • Vật phẩm")
+ line("Cards hiện có: %d"%state.cards,20)
+ var items=[
+  {"label":"Mở vườn cây • 6 cards","level":4,"owned":state.orchard_open,"action":state.expand_orchard},
+  {"label":"Mũ mới • 4 cards","level":4,"owned":state.outfit_owned,"action":state.buy_outfit},
+  {"label":"1 Năng lượng (Power) • 3 cards","level":4,"owned":false,"action":state.buy_power}
+ ]
+ for item in items:
+  var text:String=item.label
+  if item.owned:text+=" • Đã có"
+  elif state.level<int(item.level):text+=" • Mở ở cấp %d"%int(item.level)
+  var b:=make_button(body,text,func():
+   var ok:bool=item.action.call()
+   changed()
+   show_shop()
+   message("Đã mua / mở thành công." if ok else "Không đủ cards hoặc vật phẩm đã sở hữu.",ok),46)
+  b.disabled=item.owned or state.level<int(item.level)
+ if state.orchard_open:
+  line("Vườn cây đã mở. Sáu ô gieo trồng đã sẵn sàng.",17)
 func build_world_objects()->void:
  var positions=[Vector2(209,712),Vector2(278,699),Vector2(358,684),Vector2(219,732),Vector2(291,720),Vector2(377,706)]
  for pos in positions:
