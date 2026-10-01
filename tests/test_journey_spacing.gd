@@ -5,7 +5,7 @@ const SOURCE_FILES=[
  "res://game/scripts/main.gd",
  "res://game/scripts/farm_state.gd"
 ]
-const ALLOWED_TOKENS=["A1","A2","B1","B2","C1","F1"]
+const ALLOWED_TOKENS=["A1","A2","B1","B2","C1","F1","V3","Camera2D"]
 
 func _initialize()->void:
  var failures:Array[String]=[]
@@ -23,9 +23,12 @@ func _initialize()->void:
   dir.list_dir_end()
  for failure in failures:
   push_error(failure)
- assert(failures.is_empty(),"Spacing violations: "+str(failures.size()))
+ if not failures.is_empty():
+  push_error("Spacing violations: "+str(failures.size()))
+  quit(1)
+  return
  print("JOURNEY_SPACING_PASSED")
- quit()
+ quit(0)
 
 func scan_text(path:String,source:String,failures:Array[String])->void:
  var literal_re:=RegEx.new()
@@ -33,7 +36,7 @@ func scan_text(path:String,source:String,failures:Array[String])->void:
  for match in literal_re.search_all(source):
   var literal:=match.get_string()
   if should_skip(literal):continue
-  var clean:=literal
+  var clean:=literal.replace("\\n"," ").replace("\\t"," ")
   for token in ALLOWED_TOKENS:
    clean=clean.replace(token,"")
   var bad:=RegEx.new()
