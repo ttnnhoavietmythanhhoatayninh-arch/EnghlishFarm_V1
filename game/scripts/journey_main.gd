@@ -313,7 +313,7 @@ func rebuild_start_menu()->void:
  var continue_btn:=make_button(main_menu_box,"Tiếp tục",continue_from_menu,54)
  continue_btn.disabled=auto.is_empty()
  continue_btn.tooltip_text="Chưa có autosave hợp lệ." if auto.is_empty() else "Tiếp tục từ autosave gần nhất."
- make_button(main_menu_box,"Game mới",start_new_game,54)
+ make_button(main_menu_box,"Game mới",request_new_game,54)
  make_button(main_menu_box,"Tải game",show_load_menu,54)
  make_button(main_menu_box,"Cài đặt",show_settings,50)
  make_button(main_menu_box,"Thoát",func():get_tree().quit(),50)
@@ -345,6 +345,32 @@ func continue_from_menu()->void:
   else:show_guide(state.tutorial_index)
  else:
   notify("Đã tiếp tục từ autosave.")
+
+func request_new_game()->void:
+ if SaveManager.read_autosave().is_empty():
+  start_new_game()
+  return
+ open_dialog("new_game_confirm","Bắt đầu Game mới?")
+ line("Game mới sẽ thay autosave hiện tại nhưng không xóa 3 ô lưu thủ công.",18)
+ line("Bạn có thể sao lưu autosave hiện tại vào ô trống trước khi bắt đầu.",16)
+ make_button(body,"Sao lưu vào ô trống rồi Game mới",backup_autosave_then_new,48)
+ make_button(body,"Game mới không sao lưu",start_new_game,48)
+ make_button(body,"Hủy",func():dialog.hide();show_start_menu(),42)
+
+func backup_autosave_then_new()->void:
+ var empty_slot:=0
+ for slot in [1,2,3]:
+  if SaveManager.read_slot(slot).is_empty():
+   empty_slot=slot
+   break
+ if empty_slot==0:
+  message("Không còn ô trống. Hãy dùng Settings để chọn ô cần ghi đè hoặc xóa.",false)
+  return
+ if not SaveManager.write_slot(empty_slot,state.to_dict(),current_save_context(),now()):
+  message("Không thể sao lưu autosave trước khi tạo game mới.",false)
+  return
+ notify("Đã sao lưu vào ô %d."%empty_slot)
+ start_new_game()
 
 func start_new_game()->void:
  SaveManager.remove_autosave()
@@ -1020,7 +1046,7 @@ func show_import_dialog()->void:
 func show_reset_confirm()->void:
  open_dialog("reset","Xóa toàn bộ dữ liệu game?")
  line("Reset sẽ xóa cấp độ, Cards, Powers, từ đã học, cây trồng, thư nháp và toàn bộ tiến trình hiện tại.",18)
- line("Hành động này không thể hoàn tác. Sau khi xóa, game sẽ khởi động lại từ màn hình chọn độ khó.",16)
+ line("Hành động này không thể hoàn tác. Sau khi xóa, game trở về menu chính; chọn Game mới để bắt đầu lại.",16)
  var row:=HBoxContainer.new()
  row.add_theme_constant_override("separation",12)
  body.add_child(row)
