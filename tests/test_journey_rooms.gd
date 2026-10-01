@@ -68,6 +68,10 @@ func run()->void:
   for b in g.command_buttons:
    if b.visible:visible_commands.append(b.text)
   assert(visible_commands==["Farm","Letters","Settings","Tasks","Map","? Help"],id+": V4 room toolbar must be fixed")
+  g.toggle_map()
+  assert(g.map_panel.visible,id+": Map button must work as view-only inside room")
+  g.toggle_map()
+  assert(not g.map_panel.visible,id+": Map closes again")
   var data:Dictionary=g.interior.room_data(id)
   assert(data.objects.size()>=2,id+": room must have distinct interactive furnishings")
   if id!="lily":
