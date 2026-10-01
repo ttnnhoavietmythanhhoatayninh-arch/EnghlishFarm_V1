@@ -80,6 +80,7 @@ var tutorial_image:TextureRect
 var tutorial_controls:HBoxContainer
 var tutorial_page:=0
 var tutorial_reviewing:=false
+var tutorial_zoomed:=false
 var main_menu_panel:PanelContainer
 var main_menu_box:VBoxContainer
 var pending_npc:=""
@@ -440,6 +441,7 @@ func show_v4_tutorial(page:int,reviewing:bool=false)->void:
   else:show_guide(clampi(page-1,0,GUIDE_PAGES.size()-1))
   return
  tutorial_reviewing=reviewing or state.onboarded
+ tutorial_zoomed=false
  tutorial_page=clampi(page,0,V4_GUIDE_ASSETS.size()-1)
  if tutorial_page>0 and not state.difficulty_chosen:
   tutorial_page=0
@@ -451,25 +453,47 @@ func show_v4_tutorial(page:int,reviewing:bool=false)->void:
  pending_door=""
  dialog.hide()
  map_panel.hide()
+ tutorial_image.position=Vector2(55,8)
+ tutorial_image.size=Vector2(1100,618)
  tutorial_image.texture=load(V4_GUIDE_ASSETS[tutorial_page])
  clear_tutorial_controls()
  if tutorial_page==0:
   for item in [["Easy • Dễ","easy"],["Normal • Vừa","normal"],["Hard • Khó","hard"]]:
    var mode:String=item[1]
    var label_text:String=item[0]+(" ✓" if state.difficulty_chosen and state.difficulty==mode else "")
-   tutorial_button(label_text,func():select_v4_difficulty(mode),245)
+   tutorial_button(label_text,func():select_v4_difficulty(mode),230)
+  tutorial_button("Bản chữ",show_v4_text_version,130)
+  tutorial_button("Phóng lớn",zoom_v4_tutorial,140)
   if state.difficulty_chosen:
-   tutorial_button("Tiếp →",func():show_v4_tutorial(1,tutorial_reviewing),190)
+   tutorial_button("Tiếp →",func():show_v4_tutorial(1,tutorial_reviewing),150)
  else:
-  tutorial_button("← Trước",func():show_v4_tutorial(tutorial_page-1,tutorial_reviewing),170)
+  tutorial_button("← Trước",func():show_v4_tutorial(tutorial_page-1,tutorial_reviewing),135)
   if tutorial_page<V4_GUIDE_ASSETS.size()-1:
-   tutorial_button("Tiếp →",func():show_v4_tutorial(tutorial_page+1,tutorial_reviewing),170)
+   tutorial_button("Tiếp →",func():show_v4_tutorial(tutorial_page+1,tutorial_reviewing),135)
   else:
-   tutorial_button("Bắt đầu chơi",finish_v4_tutorial,220)
-  tutorial_button("Bỏ qua",skip_v4_tutorial,150)
-  tutorial_button("× Đóng",close_v4_tutorial,150)
+   tutorial_button("Bắt đầu chơi",finish_v4_tutorial,175)
+  tutorial_button("Bản chữ",show_v4_text_version,130)
+  tutorial_button("Phóng lớn",zoom_v4_tutorial,140)
+  tutorial_button("Bỏ qua",skip_v4_tutorial,120)
+  tutorial_button("× Đóng",close_v4_tutorial,120)
  tutorial_panel.show()
  screen="tutorial_v4"
+
+func show_v4_text_version()->void:
+ tutorial_panel.hide()
+ tutorial_zoomed=false
+ if tutorial_page==0:
+  show_difficulty()
+ else:
+  show_guide(clampi(tutorial_page-1,0,GUIDE_PAGES.size()-1))
+
+func zoom_v4_tutorial()->void:
+ tutorial_zoomed=true
+ tutorial_image.position=Vector2(5,0)
+ tutorial_image.size=Vector2(1198,674)
+ clear_tutorial_controls()
+ tutorial_button("← Thu nhỏ",func():show_v4_tutorial(tutorial_page,tutorial_reviewing),180)
+
 
 func select_v4_difficulty(mode:String)->void:
  if state.choose_difficulty(mode):
@@ -654,7 +678,9 @@ func _process(delta:float)->void:
 func _unhandled_input(event:InputEvent)->void:
  if event is InputEventKey and event.pressed and not event.echo:
   if tutorial_panel!=null and tutorial_panel.visible:
-   if event.keycode==KEY_ESCAPE:close_v4_tutorial()
+   if event.keycode==KEY_ESCAPE:
+    if tutorial_zoomed:show_v4_tutorial(tutorial_page,tutorial_reviewing)
+    else:close_v4_tutorial()
    elif event.keycode==KEY_F1:show_v4_tutorial(0,true)
    return
   if event.keycode==KEY_ESCAPE:
