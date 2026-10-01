@@ -100,7 +100,7 @@ func build_ui()->void:
  var hbox:=VBoxContainer.new();hud_panel.add_child(hbox)
  hud=Label.new();hud.add_theme_font_size_override("font_size",17);hbox.add_child(hud)
  bar=ProgressBar.new();bar.custom_minimum_size=Vector2(400,21);bar.max_value=3;bar.show_percentage=false;hbox.add_child(bar)
- var commands=[["Learn","book",open_learning],["Farm","leaf",show_farm],["Letters","mail",show_writing],["Settings","gear",show_settings],["Tasks","star",show_tasks],["Map","map",toggle_map],["? Help","help",func():show_guide(0)]]
+ var commands=[["Learn","book",open_learning],["Farm","leaf",show_farm],["Letters","mail",show_writing],["Settings","gear",show_settings],["Tasks","star",show_tasks],["Map","map",toggle_map],["? Help","help",show_help]]
  for i in range(commands.size()):
   var b:=Button.new();b.text=commands[i][0];b.icon=load("res://game/assets/ui/v3_"+str(commands[i][1])+".svg")
   b.icon_alignment=HORIZONTAL_ALIGNMENT_CENTER;b.vertical_icon_alignment=VERTICAL_ALIGNMENT_TOP
@@ -111,7 +111,7 @@ func build_ui()->void:
    else:notify("Hãy chọn độ khó và đọc hướng dẫn trước khi chơi."))
   ui.add_child(b)
  hint=Label.new();hint.position=Vector2(20,105);hint.add_theme_font_size_override("font_size",17);ui.add_child(hint)
- toast=Label.new();toast.position=Vector2(22,580);toast.custom_minimum_size=Vector2(610,40);toast.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
+ toast=Label.new();toast.position=Vector2(470,24);toast.custom_minimum_size=Vector2(620,48);toast.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
  toast.add_theme_stylebox_override("normal",Style.box("fff0c9"));ui.add_child(toast);toast.hide()
  map_panel=PanelContainer.new();map_panel.position=Vector2(1010,14);map_panel.size=Vector2(252,200);ui.add_child(map_panel)
  var mv:=VBoxContainer.new();map_panel.add_child(mv)
@@ -143,16 +143,32 @@ func make_button(parent:Node,text:String,action:Callable,height:int=42)->Button:
  var b:=Button.new();b.text=text;b.custom_minimum_size.y=height;b.pressed.connect(action);parent.add_child(b);return b
 func line(text:String,size:int=18)->Label:
  var l:=Label.new();l.text=text;l.custom_minimum_size.x=475;l.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART;l.add_theme_font_size_override("font_size",maxi(16,size+state.text_size-20));body.add_child(l);return l
+func rich_line(text:String,height:int=58)->RichTextLabel:
+ var r:=RichTextLabel.new()
+ r.bbcode_enabled=true
+ r.fit_content=true
+ r.custom_minimum_size=Vector2(475,height)
+ r.add_theme_font_size_override("normal_font_size",maxi(16,18+state.text_size-20))
+ r.add_theme_font_size_override("bold_font_size",maxi(16,18+state.text_size-20))
+ r.text=text
+ body.add_child(r)
+ return r
 func open_dialog(id:String,title:String)->void:
  if not state.difficulty_chosen and id!="difficulty":return
  screen=id;fishing_running=false;player.stop();pending_npc="";pending_door=""
  for c in body.get_children():body.remove_child(c);c.queue_free()
  title_label.text=title;feedback.text="";feedback.modulate=Color.WHITE;close_button.disabled=false
  dialog.show();dialog.position=Vector2(704,140)
+
 func close_dialog()->void:
  if screen=="difficulty" and not state.difficulty_chosen:return
- if screen=="guide" and not state.onboarded:finish_guide();return
- dialog.hide();fishing_running=false;get_viewport().gui_release_focus()
+ if screen=="guide" and not state.onboarded:
+  finish_guide()
+  notify("Có thể mở lại bằng ? Help hoặc F1.")
+  return
+ dialog.hide()
+ fishing_running=false
+ get_viewport().gui_release_focus()
 func message(text:String,good:bool=true)->void:
  feedback.text=text;feedback.modulate=Color("466635") if good else Color("a44c32")
 func notify(text:String)->void:toast.text=text;toast.show();toast_timer=6.0
@@ -162,11 +178,14 @@ func refresh_hud()->void:
  hud.text="Lv.%d • %d/3 việc  |  Cards %d  |  Powers %d"%[state.level,state.level_points(),state.cards,state.powers]
  if state.level==5:hud.text="Lv.5 • Hoàn thành chương thử  | Cards %d | Powers %d"%[state.cards,state.powers]
  bar.value=3 if state.level==5 else state.level_points()
-func changed()->void:
- save_game();refresh_hud();update_world()
- if quest_level!=state.level:
-  quest_level=state.level;notify("Lên cấp %d! +1 Power. Mở Tasks để xem khu vực và nhiệm vụ mới."%state.level)
 
+func changed()->void:
+ save_game()
+ refresh_hud()
+ update_world()
+ if quest_level!=state.level:
+  quest_level=state.level
+  show_unlock_notice(state.level)
 func _process(delta:float)->void:
  elapsed+=delta
  player.locked=not state.onboarded or dialog.visible or interior.visible or state.delivery_active
@@ -232,25 +251,75 @@ func show_difficulty()->void:
  line("Có thể đổi trong Settings. Cấp độ thị trấn không bị giảm khi đổi độ khó.",16)
 func select_difficulty(mode:String)->void:
  if state.choose_difficulty(mode):save_game();show_guide(0)
+
 func show_guide(index:int)->void:
  if not state.difficulty_chosen:return
- guide_index=index;open_dialog("guide","Hướng dẫn • %d/6"%(index+1))
- var pages=[
- ["Bắt đầu từ một căn nhà nhỏ","WASD hoặc phím mũi tên để đi. Nhấp mặt đất để Momo tự đi tới. Nhấp NPC để đến nói chuyện, hoặc đứng gần và nhấn E. Nhấp biển cửa nhà để vào phòng. Esc hoặc × đóng nội dung."],
- ["Learn — học trước khi thử sức","Mở thẻ từ để học nghĩa Việt, giải thích Anh, phiên âm, trọng âm, cách dùng và ví dụ. Grammar có cấu trúc và cách dùng. Reading/Writing có hướng dẫn. Sau bước học, chọn Bắt đầu quiz. Sai thì đọc giải thích và thử lại."],
- ["Farm — biến kiến thức thành khu vườn","Đọc đúng 3 câu nhận 3 hạt. Plant: gieo một hạt vào ô trống. Water: tưới để cây không héo. Harvest: thu hoạch khi cây sẵn sàng. Bản thử cây lớn 20 giây, cần tưới trong 60 giây. Settings cho đổi sang 12 giờ thực khi ruộng trống."],
- ["Letters, Settings và các nút khác","Letters: học cách viết, soạn thư, tự kiểm rồi gửi cho NPC. Settings: đổi độ khó, cỡ chữ, thời gian cây. Tasks: xem 3 việc của cấp hiện tại. Map: bản đồ nhỏ góc phải, chấm cam là Momo. ? Help hoặc F1: mở lại hướng dẫn."],
- ["Làm gì để nhận được gì?","Từ mới đúng: +1 Word Card; 3 từ/ngày: thêm 3 cards. Bài đọc: hạt giống. Thu hoạch: cà rốt và cards. Giao 3 cà rốt: 8 cards, 5 gỗ và tình bạn Mia. Powers dùng gợi ý. Hoàn thành mỗi nhiệm vụ làm đầy 1/3 thanh cấp; đủ 3 việc mở cấp tiếp theo và + 1 Power."],
- ["Xe hàng, công cụ và nơi mới","Cấp 2 có xe chở cà rốt đến Mia; chờ xe đến nơi mới nhận thưởng. Cấp 3 mở Ben sửa nhà, Clara gửi/rút cards và Noah câu cá. Cấp 4 mở vườn cây, áo mới và mua Powers. Những vùng phủ xanh chưa mở. Bấm Places trong Learn để học tên các địa điểm trước khi khám phá."]]
- line(pages[index][0],22);line(pages[index][1])
- if index>0:make_button(body,"← Trang trước",func():show_guide(index-1))
- if index<5:make_button(body,"Tiếp theo →",func():show_guide(index+1))
- else:make_button(body,"Bắt đầu chơi",finish_guide)
+ guide_index=clampi(index,0,2)
+ open_dialog("guide","Hướng dẫn • %d/3"%(guide_index+1))
+ var dots:=["●  ○  ○","○  ●  ○","○  ○  ●"]
+ var titles:=["Di chuyển","Tương tác","Nhiệm vụ"]
+ var pages:=[
+  "Đi: [b]WASD[/b] hoặc mũi tên. Hoặc bấm vào đất để Momo tự đi.",
+  "Đứng gần NPC hoặc cửa → nhấn [b]E[/b]. Muốn ra ngoài → nhấn [b]Esc[/b].",
+  "Bấm [b]Tasks[/b] xem 3 việc của cấp. Làm đủ 3 việc → lên cấp."
+ ]
+ line(dots[guide_index],20)
+ line(titles[guide_index],22)
+ rich_line(pages[guide_index],72)
+ var nav_row:=HBoxContainer.new()
+ nav_row.add_theme_constant_override("separation",12)
+ body.add_child(nav_row)
+ if guide_index>0:
+  var prev:=make_button(nav_row,"← Trước",func():show_guide(guide_index-1),48)
+  prev.custom_minimum_size.x=190
+ else:
+  var spacer:=Control.new()
+  spacer.custom_minimum_size=Vector2(190,48)
+  nav_row.add_child(spacer)
+ if guide_index<2:
+  var next:=make_button(nav_row,"Tiếp theo →",func():show_guide(guide_index+1),48)
+  next.custom_minimum_size.x=190
+ else:
+  var start:=make_button(nav_row,"Bắt đầu chơi",finish_guide,52)
+  start.custom_minimum_size.x=220
+ if not state.onboarded:
+  make_button(body,"Bỏ qua",func():finish_guide();notify("Có thể mở lại bằng ? Help hoặc F1."),38)
 func finish_guide()->void:
  state.onboarded=true;dialog.hide();save_game();notify("Cấp 1: học 3 từ → đọc mở hạt → thu hoạch 3 củ. Nhấn Tasks để theo dõi.")
+func show_help()->void:
+ open_dialog("help","? Help • Mẹo nâng cao")
+ line("Học: xem kiến thức trước, sau đó làm quiz.",18)
+ line("Nông trại: Gieo (Plant) → Tưới (Water) → Thu hoạch (Harvest).",18)
+ line("Thư: học mẫu, viết ngắn, tự kiểm rồi gửi.",18)
+ line("Xe hàng: chuẩn bị 3 cà rốt rồi giao cho Mia.",18)
+ line("Cấp 2–4 mở dần Chợ, Ngân hàng, Câu cá và Vườn.",18)
+ line("Powers dùng cho gợi ý. Settings có Chế độ thử nhanh.",18)
+ make_button(body,"Xem hướng dẫn cơ bản",func():show_guide(0))
+
+func tip_once(key:String,text:String)->void:
+ var flag:="tip:"+key
+ if state.studied.get(flag,false):return
+ state.studied[flag]=true
+ save_game()
+ notify(text)
+
+func show_unlock_notice(level:int)->void:
+ var text:=""
+ match level:
+  2:text="Đã mở xe hàng, Chợ và Bưu điện."
+  3:text="Đã mở Xưởng, Ngân hàng và Câu cá."
+  4:text="Đã mở Vườn cây và cửa hàng mở rộng."
+  5:text="Bạn đã hoàn thành chương thử."
+ if text.is_empty():return
+ open_dialog("unlock","Mở khóa mới")
+ line(text,20)
+ make_button(body,"Xem hướng dẫn",show_help,48)
+ make_button(body,"Tiếp tục chơi",close_dialog,42)
+
 func open_learning()->void:
  if not state.difficulty_chosen:return
  open_dialog("learn","Learn • Học và luyện tập")
+ tip_once("learn","Học 3 từ rồi làm bài kiểm tra.")
  line("Chọn nội dung để học trước. Bài kiểm tra chỉ mở sau khi bạn đã xem phần kiến thức.")
  for item in [["Vocabulary • Từ vựng",func():show_vocabulary(0)],["Grammar • Ngữ pháp",show_grammar],["Reading • Kỹ năng đọc",show_reading],["Writing • Kỹ năng viết",show_writing_lesson],["Places • Tên các địa điểm",show_places]]:make_button(body,item[0],item[1])
 func show_vocabulary(index:int)->void:
@@ -409,7 +478,7 @@ func show_settings()->void:
  line("Cỡ chữ",21)
  var slider:=HSlider.new();slider.min_value=16;slider.max_value=24;slider.step=1;slider.value=state.text_size;body.add_child(slider)
  slider.value_changed.connect(func(v):state.text_size=int(v);ui.theme.default_font_size=int(v);save_game();message("Cỡ chữ áp dụng khi mở lại nội dung."))
- var trial:=CheckButton.new();trial.text="Cây lớn nhanh 20 giây (tắt = 12 giờ)";trial.button_pressed=state.demo_mode;body.add_child(trial)
+ var trial:=CheckButton.new();trial.text="Chế độ thử nhanh (tắt = 12 giờ)";trial.button_pressed=state.demo_mode;body.add_child(trial)
  trial.toggled.connect(func(on):
   for p in state.plots:
    if not p.is_empty():trial.set_pressed_no_signal(state.demo_mode);message("Hãy thu hoạch hoặc dọn hết cây trước khi đổi thời gian.",false);return
@@ -512,6 +581,7 @@ func enter_room(id:String)->void:
  interior.queue_redraw()
  interior.show()
  room_ui.show()
+ tip_once("room","Nhấn Esc để ra ngoài.")
  for c in room_ui.get_children():c.queue_free()
  var heading:=Label.new()
  heading.text=n.place+"  •  "+n.relation
