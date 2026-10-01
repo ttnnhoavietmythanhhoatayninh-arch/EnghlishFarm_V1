@@ -5,7 +5,7 @@ const SOURCE_FILES=[
  "res://game/scripts/main.gd",
  "res://game/scripts/farm_state.gd"
 ]
-const ALLOWED_TOKENS=["A1","A2","B1","B2","C1","F1","V3","V4","Camera2D"]
+const ALLOWED_TOKENS=["A1","A2","B1","B2","C1","F1","V3","V4","tutorial_v4","Camera2D"]
 
 func _initialize()->void:
  var failures:Array[String]=[]
