@@ -4,7 +4,7 @@ static func read_save(path: String) -> Dictionary:
     if not FileAccess.file_exists(path):
         return {}
     var file := FileAccess.open(path,FileAccess.READ)
-    if file == null or file.get_length()>65536:
+    if file == null or file.get_length()>1048576:
         return {}
     var parser := JSON.new()
     var error := parser.parse(file.get_as_text())
@@ -37,3 +37,18 @@ static func write_save(path: String, data: Dictionary) -> bool:
             DirAccess.rename_absolute(backup,destination)
         return false
     return true
+
+
+static func read_save_with_backup(path: String) -> Dictionary:
+    var primary := read_save(path)
+    if not primary.is_empty():
+        return primary
+    return read_save(path+".bak")
+
+static func remove_save_family(path: String) -> bool:
+    var ok := true
+    for suffix in ["",".bak",".tmp"]:
+        var candidate := path+suffix
+        if FileAccess.file_exists(candidate):
+            ok = DirAccess.remove_absolute(ProjectSettings.globalize_path(candidate)) == OK and ok
+    return ok
