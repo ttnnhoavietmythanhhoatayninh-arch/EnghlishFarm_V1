@@ -5,6 +5,17 @@ const Nav=preload("res://game/scripts/journey_navigation.gd")
 const Style=preload("res://game/scripts/journey_theme.gd")
 const Mini=preload("res://game/scripts/journey_map.gd")
 const Room=preload("res://game/scripts/journey_room.gd")
+const GUIDE_PAGES=[
+ ["Cho Momo đi và trò chuyện","1. Đi đến một chỗ: Nhấp chuột trái vào mặt đất.\n\n2. Đi bằng bàn phím: Dùng W A S D hoặc các phím mũi tên.\n\n3. Trò chuyện và vào nhà: Nhấp nhân vật để nói chuyện. Nhấp biển cửa để vào.\n\nĐứng gần nhân vật và nhấn E cũng mở trò chuyện. Esc hoặc × để đóng."],
+ ["Học trước, làm bài sau","1. Mở Learn: Chọn mục Từ vựng để học 3 từ.\n\n2. Xem từng thẻ từ: Đọc nghĩa tiếng Việt và câu ví dụ.\n\n3. Làm bài kiểm tra: Chọn đáp án. Chưa đúng thì xem lại và thử tiếp.\n\nNút đọc từ chỉ phát tiếng nếu máy có giọng đọc tiếng Anh."],
+ ["Làm bài đọc để nhận hạt","1. Chọn Reading trong Learn: Xem cách đọc và đoạn văn mẫu.\n\n2. Trả lời 3 câu hỏi: Gõ câu trả lời ngắn, rồi bấm Kiểm tra.\n\n3. Nhận 3 hạt giống: Trả lời đúng cả 3 câu để nhận hạt lần đầu.\n\nMỗi mức học nhận hạt từ bài đọc một lần. Có thể mua thêm sau khi mở hạt."],
+ ["Gieo hạt → Tưới → Thu hoạch","1. Plant = Gieo hạt: Chọn ô đất trống, bấm Plant.\n\n2. Water = Tưới cây: Bấm Water ở ô vừa gieo.\n\n3. Harvest = Thu hoạch: Khi cây sẵn sàng, bấm Harvest.\n\nChế độ nhanh: cây lớn sau 20 giây; héo nếu quá 60 giây không tưới."],
+ ["Cấp 1 có 3 việc cần làm","1. Học và nhớ 3 từ: Hoàn thành bài kiểm tra từ vựng.\n\n2. Làm xong bài đọc: Trả lời đúng 3 câu để mở hạt giống.\n\n3. Thu hoạch 3 củ cà rốt: Chăm cây và thu hoạch ở khu vườn.\n\nMỗi việc làm đầy 1/3 thanh cấp. Đủ 3 việc: lên cấp và nhận 1 Power."],
+ ["Hiểu thẻ thưởng và gợi ý","1. Học từ để nhận Cards: Đúng một từ lần đầu: nhận 1 thẻ.\n\n2. Chăm vườn cũng có thưởng: Mỗi củ cà rốt thu hoạch: nhận thêm 2 thẻ.\n\n3. Dùng Power khi cần: Bấm Gợi ý trong bài kiểm tra, dùng 1 Power.\n\nCards và Powers là phần thưởng trong game. Không phải tiền thật."],
+ ["Cấp 2: Giao hàng và gửi thư","1. Nhận đơn của Mia: Chuẩn bị đủ 3 củ cà rốt.\n\n2. Chất hàng lên xe: Chờ xe đến chợ rồi mới nhận thưởng.\n\n3. Mở Letters để viết thư: Học mẫu, viết ít nhất 10 từ, tự kiểm rồi gửi Emma.\n\nThư luyện tập lưu trên máy. Game xác nhận gửi, chưa chấm chất lượng tiếng Anh."],
+ ["Khám phá từng nơi trong thị trấn","1. Cấp 1 · Bắt đầu ở nông trại: Lily dạy học, Tom hướng dẫn chăm vườn.\n\n2. Cấp 2 · Mở thêm địa điểm: Vào thư viện, chợ Mia và bưu điện Emma.\n\n3. Cấp 3 · Khám phá tiếp: Ben sửa nhà, Clara giữ thẻ, Noah dạy câu cá.\n\nCấp 4 mở vườn cây và vật phẩm mới. Vùng phủ xanh là nơi chưa mở."],
+ ["Cần hỗ trợ? Các nút ở đây","1. ? Help hoặc F1: Mở lại toàn bộ hướng dẫn.\n\n2. Settings = Cài đặt: Đổi độ khó, cỡ chữ và thời gian cây lớn.\n\n3. Map = Bản đồ: Xem vị trí Momo và các nơi trong thị trấn.\n\nMuốn đổi thời gian cây, hãy thu hoạch hoặc dọn hết cây trước. Tiến trình tự lưu."]
+]
 const SAVE="user://englishfarm_journey_v3.json"
 const TASK_NAMES={"vocabulary":"Học và nhớ 3 từ","reading":"Học cách đọc, mở 3 hạt","harvest":"Thu hoạch 3 củ cà rốt","delivery":"Giao hàng cho Mia","grammar":"Học và làm ngữ pháp","letter":"Học viết và gửi thư","house":"Nâng cấp căn nhà","fishing":"Câu được một con cá","bank":"Gửi thẻ vào ngân hàng","orchard":"Mở vườn cây ăn quả","outfit":"Mua trang phục","power":"Mua thêm một Power"}
 var state=State.new()
@@ -38,6 +49,7 @@ var room_target:=Vector2.ZERO
 var room_has_target:=false
 var command_buttons:Array[Button]=[]
 var current_room:=""
+var world_player_position:=Vector2.ZERO
 var writing:TextEdit
 var quiz_kind:=""
 var quiz_index:=0
@@ -72,7 +84,7 @@ func _ready()->void:
  lessons=JSON.parse_string(FileAccess.get_file_as_string("res://data/learning_v1.json"))
  if persistence_enabled:state.load_from(SAVE)
  state.claim_login(now());nav.unlocked_level=state.level;quest_level=state.level
- player.configure(art,nav);player.position=Vector2(200,690)*2
+ player.configure(art,nav);player.position=Vector2(200,690)*2;world_player_position=player.position
  player.get_node("Camera2D").zoom=Vector2.ONE*0.85
  for pair in [["move_left",KEY_LEFT],["move_right",KEY_RIGHT],["move_up",KEY_UP],["move_down",KEY_DOWN]]:
   var event:=InputEventKey.new();event.physical_keycode=pair[1]
@@ -127,6 +139,9 @@ func build_ui()->void:
  minimap=Mini.new();minimap.game=self;minimap.custom_minimum_size=Vector2(224,148);minimap.size=Vector2(224,148)
  minimap.gui_input.connect(func(e):
   if e is InputEventMouseButton and e.pressed and e.button_index==MOUSE_BUTTON_LEFT and not dialog.visible:
+   if interior.visible:
+    notify("Bản đồ chỉ để xem khi Momo đang ở trong phòng.")
+    return
    var target:Vector2=e.position/minimap.size*Vector2(3072,2048)
    if nav.allowed(target):player.walk_to(target)
    else:notify("Khu vực này chưa mở. Hoàn thành 3 nhiệm vụ để lên cấp."))
@@ -207,6 +222,8 @@ func _process(delta:float)->void:
  player.locked=not state.onboarded or dialog.visible or interior.visible or state.delivery_active
  if interior.visible and not dialog.visible:
   process_room_movement(delta)
+ if not interior.visible:
+  world_player_position=player.global_position
  player.z_index=int(player.position.y)
  if toast_timer>0:
   toast_timer-=delta
@@ -246,8 +263,7 @@ func _unhandled_input(event:InputEvent)->void:
   if focus is LineEdit or focus is TextEdit:return
   if event.keycode==KEY_F1:show_guide(0);return
   if event.keycode==KEY_M:
-   if interior.visible:notify("Hãy ra ngoài để mở bản đồ.")
-   else:toggle_map()
+   toggle_map()
    return
   if event.keycode==KEY_E and not dialog.visible:
    if interior.visible:
@@ -283,65 +299,57 @@ func _unhandled_input(event:InputEvent)->void:
     if target.distance_to(n.door*2)<85 and nav.allowed(n.door*2):pending_door=n.id;player.walk_to(n.door*2);return
    if nav.allowed(target):player.walk_to(target)
    else:notify("Khu vực chưa mở. Xem Tasks để lên cấp.")
+
 func toggle_map()->void:
  if not state.onboarded:return
- if interior.visible:
-  notify("Hãy ra ngoài để mở bản đồ.")
-  return
  map_panel.visible=not map_panel.visible
+
 func show_difficulty()->void:
- open_dialog("difficulty","Welcome, Momo!");dialog.position=Vector2(370,100);close_button.disabled=true
- line("Chọn mức tiếng Anh trước khi bắt đầu. Đây là hồ sơ ngoại tuyến trên máy, không cần tài khoản.")
- for item in [["easy","Easy • A1–A2","Từ quen thuộc, câu ngắn, hướng dẫn từng bước."],["normal","Normal • B1–B2","Đọc tình huống và viết thư có giải thích."],["hard","Hard • C1","Từ nâng cao, suy luận và lập luận rõ ràng."]]:
-  make_button(body,item[1],func():select_difficulty(item[0]),54);line(item[2],16)
- line("Có thể đổi trong Settings. Cấp độ thị trấn không bị giảm khi đổi độ khó.",16)
+ open_dialog("difficulty","Welcome, Momo!")
+ dialog.position=Vector2(370,100)
+ close_button.disabled=true
+ line("Chọn mức phù hợp với khả năng tiếng Anh của bạn. Nếu mới học, chọn Easy (Dễ). Không cần tài khoản; tiến trình lưu trên máy.")
+ for item in [["easy","Easy • Dễ (A1–A2)","Dành cho người mới học: từ quen thuộc và câu ngắn."],["normal","Normal • Vừa (B1–B2)","Dành cho người đã biết từ và câu cơ bản."],["hard","Hard • Khó (C1)","Dành cho người muốn luyện từ và cách diễn đạt nâng cao."]]:
+  make_button(body,item[1],func():select_difficulty(item[0]),54)
+  line(item[2],16)
+ line("Độ khó theo khả năng tiếng Anh, không theo tuổi. Có thể đổi trong Settings.",16)
 func select_difficulty(mode:String)->void:
  if state.choose_difficulty(mode):save_game();show_guide(0)
 
+
 func show_guide(index:int)->void:
  if not state.difficulty_chosen:return
- guide_index=clampi(index,0,2)
- open_dialog("guide","Hướng dẫn • %d/3"%(guide_index+1))
- var dots:=["●  ○  ○","○  ●  ○","○  ○  ●"]
- var titles:=["Di chuyển","Tương tác","Nhiệm vụ"]
- var pages:=[
-  "Đi: [b]WASD[/b] hoặc mũi tên. Hoặc bấm vào đất để Momo tự đi.",
-  "Đứng gần NPC hoặc cửa → nhấn [b]E[/b]. Muốn ra ngoài → nhấn [b]Esc[/b].",
-  "Bấm [b]Tasks[/b] xem 3 việc của cấp. Làm đủ 3 việc → lên cấp."
- ]
- line(dots[guide_index],20)
- line(titles[guide_index],22)
- rich_line(pages[guide_index],72)
+ guide_index=clampi(index,0,GUIDE_PAGES.size()-1)
+ open_dialog("guide","Hướng dẫn • %d/%d"%[guide_index+1,GUIDE_PAGES.size()])
+ line(GUIDE_PAGES[guide_index][0],22)
+ line(GUIDE_PAGES[guide_index][1],17)
  var nav_row:=HBoxContainer.new()
  nav_row.add_theme_constant_override("separation",12)
  body.add_child(nav_row)
  if guide_index>0:
-  var prev:=make_button(nav_row,"← Trước",func():show_guide(guide_index-1),48)
+  var prev:=make_button(nav_row,"← Bước trước",func():show_guide(guide_index-1),48)
   prev.custom_minimum_size.x=190
  else:
   var spacer:=Control.new()
   spacer.custom_minimum_size=Vector2(190,48)
   nav_row.add_child(spacer)
- if guide_index<2:
-  var next:=make_button(nav_row,"Tiếp theo →",func():show_guide(guide_index+1),48)
-  next.custom_minimum_size.x=190
+ if guide_index<GUIDE_PAGES.size()-1:
+  var next:=make_button(nav_row,"Bước tiếp theo →",func():show_guide(guide_index+1),48)
+  next.custom_minimum_size.x=220
  else:
   var start:=make_button(nav_row,"Bắt đầu chơi",finish_guide,52)
   start.custom_minimum_size.x=220
  if not state.onboarded:
-  make_button(body,"Bỏ qua",func():finish_guide();notify("Có thể mở lại bằng ? Help hoặc F1."),38)
-func finish_guide()->void:
- state.onboarded=true;dialog.hide();save_game();notify("Cấp 1: học 3 từ → đọc mở hạt → thu hoạch 3 củ. Nhấn Tasks để theo dõi.")
-func show_help()->void:
- open_dialog("help","? Help • Mẹo nâng cao")
- line("Học: xem kiến thức trước, sau đó làm quiz.",18)
- line("Nông trại: Gieo (Plant) → Tưới (Water) → Thu hoạch (Harvest).",18)
- line("Thư: học mẫu, viết ngắn, tự kiểm rồi gửi.",18)
- line("Xe hàng: chuẩn bị 3 cà rốt rồi giao cho Mia.",18)
- line("Cấp 2–4 mở dần Chợ, Ngân hàng, Câu cá và Vườn.",18)
- line("Powers dùng cho gợi ý. Settings có Chế độ thử nhanh.",18)
- make_button(body,"Xem hướng dẫn cơ bản",func():show_guide(0))
+  make_button(body,"Bỏ qua",func():finish_guide();notify("Có thể mở lại toàn bộ hướng dẫn bằng ? Help hoặc F1."),38)
 
+func finish_guide()->void:
+ state.onboarded=true
+ dialog.hide()
+ save_game()
+ notify("Bắt đầu cấp 1: học 3 từ → làm bài đọc nhận hạt → thu hoạch 3 củ. Bấm Tasks (Nhiệm vụ) để theo dõi.")
+
+func show_help()->void:
+ show_guide(0)
 func tip_once(key:String,text:String)->void:
  var flag:="tip:"+key
  if state.studied.get(flag,false):return
@@ -462,7 +470,7 @@ func answer_quiz(answer:String)->void:
  make_button(body,"Xem nhiệm vụ tiếp theo",show_tasks)
 func show_tasks()->void:
  open_dialog("tasks","Level %d • Mục tiêu hôm nay"%state.level)
- line("Mỗi việc đúng cấp tăng 1/3 thanh tiến trình. Đủ 3 việc tự lên cấp và nhận 1 Power.")
+ line("Mỗi nhiệm vụ của cấp hiện tại làm đầy 1/3 thanh tiến trình. Hoàn thành cả 3: tự lên cấp và nhận 1 Power (lượt gợi ý).")
  for id in State.LEVEL_TASKS.get(state.level,[]):
   line(("✓ " if state.completed.has(id) else "○ ")+str(TASK_NAMES[id]),21)
   if not state.completed.has(id):make_button(body,"Thực hiện",func():route_task(id))
@@ -516,28 +524,63 @@ func farm_action(action:String,index:int)->void:
   "harvest":ok=state.harvest(index,crop_time())>0
  changed();show_farm();refresh_crops()
  message("Xong! Harvest nhận 1 cà rốt và 2 cards." if ok and action=="harvest" else ("Đã thực hiện." if ok else "Kiểm tra hạt, tuổi cây hoặc hạn tưới. Ô héo có thể gieo lại."),ok)
+
 func show_settings()->void:
  open_dialog("settings","Settings • Tùy chọn")
  line("Độ khó tiếng Anh",21)
- for mode in ["easy","normal","hard"]:
-  make_button(body,mode.capitalize()+(" ✓" if state.difficulty==mode else ""),func():state.choose_difficulty(mode);changed();show_settings())
+ for item in [["easy","Easy • Dễ"],["normal","Normal • Vừa"],["hard","Hard • Khó"]]:
+  var mode:String=item[0]
+  make_button(body,item[1]+(" ✓" if state.difficulty==mode else ""),func():state.choose_difficulty(mode);changed();show_settings())
  line("Cỡ chữ",21)
- var slider:=HSlider.new();slider.min_value=16;slider.max_value=24;slider.step=1;slider.value=state.text_size;body.add_child(slider)
+ var slider:=HSlider.new()
+ slider.min_value=16;slider.max_value=24;slider.step=1;slider.value=state.text_size
+ body.add_child(slider)
  slider.value_changed.connect(func(v):
   state.text_size=int(v)
   ui.theme.default_font_size=int(v)
   save_game()
   call_deferred("show_settings"))
- var trial:=CheckButton.new();trial.text="Chế độ thử nhanh (tắt = 12 giờ)";trial.button_pressed=state.demo_mode;body.add_child(trial)
+ var trial:=CheckButton.new()
+ trial.text="Chế độ thử nhanh (tắt = 12 giờ)"
+ trial.button_pressed=state.demo_mode
+ body.add_child(trial)
  trial.toggled.connect(func(on):
   for p in state.plots:
-   if not p.is_empty():trial.set_pressed_no_signal(state.demo_mode);message("Hãy thu hoạch hoặc dọn hết cây trước khi đổi thời gian.",false);return
-  state.demo_mode=on;changed())
+   if not p.is_empty():
+    trial.set_pressed_no_signal(state.demo_mode)
+    message("Hãy thu hoạch hoặc dọn hết cây trước khi đổi thời gian.",false)
+    return
+  state.demo_mode=on
+  changed())
  make_button(body,"Dọn các ô cây đã héo",func():
   for i in range(6):
    if state.crop_status(i,crop_time())=="wilted":state.plots[i]={}
   changed();refresh_crops();message("Đã dọn cây héo; từ đã học vẫn giữ nguyên."))
- line("Tự lưu trên máy. Không cần tài khoản. Không thu giọng nói. File tiến trình V3 riêng, bản cũ vẫn được giữ.",16)
+ line("Dữ liệu được tự lưu trên máy. Không cần tài khoản.",16)
+ make_button(body,"Xóa dữ liệu game • Reset",show_reset_confirm,46)
+
+func show_reset_confirm()->void:
+ open_dialog("reset","Xóa toàn bộ dữ liệu game?")
+ line("Reset sẽ xóa cấp độ, Cards, Powers, từ đã học, cây trồng, thư nháp và toàn bộ tiến trình hiện tại.",18)
+ line("Hành động này không thể hoàn tác. Sau khi xóa, game sẽ khởi động lại từ màn hình chọn độ khó.",16)
+ var row:=HBoxContainer.new()
+ row.add_theme_constant_override("separation",12)
+ body.add_child(row)
+ var cancel:=make_button(row,"Hủy",show_settings,48)
+ cancel.custom_minimum_size.x=180
+ var erase:=make_button(row,"Xóa dữ liệu và chơi lại",reset_game_data,48)
+ erase.custom_minimum_size.x=260
+
+func erase_save_file()->bool:
+ if not FileAccess.file_exists(SAVE):return true
+ return DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE))==OK
+
+func reset_game_data()->void:
+ if not erase_save_file():
+  message("Không thể xóa dữ liệu lưu. Hãy kiểm tra quyền ghi của thư mục game.",false)
+  return
+ persistence_enabled=false
+ get_tree().reload_current_scene()
 func setup_people()->void:
  npc_data=[
  {"id":"home","name":"Momo","role":"Nhà của bạn","relation":"Căn nhà và khu vườn đầu tiên của bạn.","place":"Nông trại (Farm)","at":Vector2(200,690),"door":Vector2(190,680),"exit":Vector2(190,735),"sprite":0,"level":1},
@@ -623,6 +666,7 @@ func enter_room(id:String)->void:
   return
  close_dialog()
  player.stop()
+ world_player_position=player.global_position
  current_room=id
  interior.kind=id
  interior.upgraded=state.house_level>1
@@ -633,19 +677,11 @@ func enter_room(id:String)->void:
  map_panel.hide()
  hint.hide()
  for b in command_buttons:
-  b.visible=b.text in ["Learn","Tasks","? Help"]
+  b.visible=b.text in ["Farm","Letters","Settings","Tasks","Map","? Help"]
  for c in room_ui.get_children():
   if c!=room_hint:c.queue_free()
  room_hint.show()
  var data:Dictionary=interior.room_data(id)
- var heading:=Label.new()
- heading.text=str(data.title)
- heading.position=Vector2(470,105)
- heading.custom_minimum_size=Vector2(340,46)
- heading.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
- heading.add_theme_font_size_override("font_size",24)
- heading.add_theme_stylebox_override("normal",Style.box("fff6df","8b6d4b",10))
- room_ui.add_child(heading)
  var leave:=make_button(room_ui,"← Ra ngoài (Esc)",leave_room,50)
  leave.position=Vector2(535,565)
  leave.size=Vector2(210,50)
@@ -683,6 +719,7 @@ func leave_room()->void:
   else:
    var safe_door:Vector2=nav.safe_walkable_near(Vector2(n.door)*2)
    player.global_position=safe_door if safe_door.is_finite() else Vector2(n.door)*2
+ world_player_position=player.global_position
  player.locked=not state.onboarded or state.delivery_active
  hint.show()
  for b in command_buttons:b.show()
