@@ -828,7 +828,7 @@ func enter_room(id:String)->void:
  room_hint.show()
  var data:Dictionary=interior.room_data(id)
  var leave:=make_button(room_ui,"← Ra ngoài (Esc)",leave_room,50)
- leave.position=Vector2(535,550)
+ leave.position=Vector2(535,535)
  leave.size=Vector2(210,48)
  if player.get_parent()!=room_layer:
   player.reparent(room_layer)
