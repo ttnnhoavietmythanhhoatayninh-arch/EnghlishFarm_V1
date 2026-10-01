@@ -64,6 +64,15 @@ func run()->void:
   var ids_before:=room_button_ids(g)
   assert(not ids_before.is_empty(),id+": room has controls")
   assert_room_buttons_fit(g,id)
+  var visible_commands:Array[String]=[]
+  for b in g.command_buttons:
+   if b.visible:visible_commands.append(b.text)
+  assert(visible_commands==["Farm","Letters","Settings","Tasks","Map","? Help"],id+": V4 room toolbar must be fixed")
+  var data:Dictionary=g.interior.room_data(id)
+  assert(data.objects.size()>=2,id+": room must have distinct interactive furnishings")
+  if id!="lily":
+   for obj in data.objects:
+    assert("sách" not in str(obj.label).to_lower(),id+": only Library may use book shelving")
   for i in range(3):
    await process_frame
   var ids_after:=room_button_ids(g)
