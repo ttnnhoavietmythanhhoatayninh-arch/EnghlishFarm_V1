@@ -67,7 +67,7 @@ jobs:
       - name: Test Journey progression, UI and layout
         run: |
           set -o pipefail
-          for suite in journey journey_ui journey_layout journey_rooms journey_room_exit_movement journey_save_v4 journey_spacing; do
+          for suite in journey journey_ui journey_layout journey_rooms journey_room_exit_movement journey_save_v4 journey_menu journey_spacing; do
             timeout 60 godot --headless --path . --script tests/test_${suite}.gd 2>&1 | tee ${suite}.log
             grep -q 'PASSED' ${suite}.log
             ! grep -Eq 'SCRIPT ERROR:|ERROR:' ${suite}.log
