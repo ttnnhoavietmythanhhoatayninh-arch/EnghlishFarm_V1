@@ -67,6 +67,8 @@ var pending_restore_context:Dictionary={}
 var last_autosave_position:=Vector2.INF
 var autosave_clock:=0.0
 var writing:TextEdit
+var letter_dirty:=false
+var letter_debounce:=0.0
 var quiz_kind:=""
 var quiz_index:=0
 var quiz_answers:Array=[]
@@ -373,10 +375,11 @@ func show_load_menu()->void:
  line("Chọn một ô lưu thủ công. Dữ liệu chỉ thay phiên hiện tại sau khi bản lưu được kiểm tra hợp lệ.",17)
  for slot in [1,2,3]:
   var meta:=SaveManager.read_slot(slot)
-  var label_text:="Ô %d • Trống"%slot
+  var slot_id:int=slot
+  var label_text:="Ô %d • Trống"%slot_id
   if not meta.is_empty():
-   label_text="Ô %d • Lv.%d • %s"%[slot,int(meta.state.get("level",1)),str(meta.state.get("difficulty","easy"))]
-  var b:=make_button(body,label_text,func(s=slot):load_slot_from_menu(s),48)
+   label_text="Ô %d • Lv.%d • %s"%[slot_id,int(meta.state.get("level",1)),str(meta.state.get("difficulty","easy"))]
+  var b:=make_button(body,label_text,func():load_slot_from_menu(slot_id),48)
   b.disabled=meta.is_empty()
  make_button(body,"← Menu chính",func():dialog.hide();show_start_menu(),42)
 
@@ -503,6 +506,7 @@ func fit_dialog_layout()->void:
 
 func close_dialog()->void:
  if screen=="difficulty" and not state.difficulty_chosen:return
+ if screen=="letters":flush_letter_draft()
  if screen=="guide" and not state.onboarded:
   finish_guide()
   notify("Có thể mở lại bằng ? Help hoặc F1.")
@@ -513,6 +517,19 @@ func close_dialog()->void:
 func message(text:String,good:bool=true)->void:
  feedback.text=text;feedback.modulate=Color("466635") if good else Color("a44c32")
 func notify(text:String)->void:toast.text=text;toast.show();toast_timer=6.0
+func flush_letter_draft()->void:
+ if not letter_dirty:return
+ letter_dirty=false
+ letter_debounce=0.0
+ save_game()
+
+func _exit_tree()->void:
+ if persistence_enabled and state.difficulty_chosen:
+  if writing!=null and is_instance_valid(writing):
+   state.letter_draft=writing.text.left(10000)
+  letter_dirty=false
+  SaveManager.write_autosave(state.to_dict(),current_save_context(),now())
+
 func save_game()->void:
  if not persistence_enabled or not state.difficulty_chosen:return
  if not SaveManager.write_autosave(state.to_dict(),current_save_context(),now()):
@@ -591,6 +608,10 @@ func _process(delta:float)->void:
   if is_instance_valid(fishing_slider):fishing_slider.value=fishing_position*100
  refresh_clock+=delta
  autosave_clock+=delta
+ if letter_dirty:
+  letter_debounce-=delta
+  if letter_debounce<=0.0:
+   flush_letter_draft()
  if state.onboarded and autosave_clock>=30.0:
   autosave_clock=0.0
   var moved:bool=last_autosave_position==Vector2.INF or player.global_position.distance_to(last_autosave_position)>4.0
@@ -850,11 +871,17 @@ func show_writing()->void:
  open_dialog("letters","Letters • Viết và gửi thư")
  line(lessons[state.difficulty].writing,17)
  writing=TextEdit.new();writing.custom_minimum_size=Vector2(470,140);writing.text=state.letter_draft;writing.placeholder_text="Dear Mia, ...";body.add_child(writing)
- writing.text_changed.connect(func():state.letter_draft=writing.text.left(10000);save_game())
+ writing.text_changed.connect(func():
+  state.letter_draft=writing.text.left(10000)
+  letter_dirty=true
+  letter_debounce=1.0)
  line("Tự kiểm: có lời chào • trả lời yêu cầu • thời gian/số lượng • lời kết. Thư chỉ lưu trên máy; chưa chấm AI.",16)
  make_button(body,"Tôi đã kiểm tra • Gửi cho Emma",func():
   if state.level<2:message("Bài viết đã lưu; nhiệm vụ gửi thư mở ở cấp 2.",false);return
   if writing.text.strip_edges().split(" ",false).size()<10:message("Hãy viết ít nhất 10 từ để thực hành một thư ngắn.",false);return
+  state.letter_draft=writing.text.left(10000)
+  state.record_letter(state.letter_draft,now())
+  letter_dirty=false
   var first:bool=state.complete_task("letter")
   if first:state.cards+=3;state.friendship["emma"]=1
   changed();message("Emma đã nhận thư. +3 cards cho lần đầu. Đây là xác nhận luyện tập, không phải đánh giá chất lượng tiếng Anh."))
@@ -921,18 +948,74 @@ func show_settings()->void:
   row.add_theme_constant_override("separation",10)
   body.add_child(row)
   var meta:=SaveManager.read_slot(slot)
-  var label_text:="Ô %d • Trống"%slot
+  var slot_id:int=slot
+  var label_text:="Ô %d • Trống"%slot_id
   if not meta.is_empty():
-   label_text="Ô %d • Lv.%d • %s"%[slot,int(meta.state.get("level",1)),str(meta.state.get("difficulty","easy"))]
+   var saved_at:=int(meta.get("saved_at",0))
+   var stamp:=Time.get_datetime_string_from_unix_time(saved_at,true) if saved_at>0 else "không rõ giờ"
+   var room_name:=str(meta.context.get("current_room",""))
+   if room_name.is_empty():room_name="town"
+   label_text="Ô %d • Lv.%d • %s • %s • %s"%[slot_id,int(meta.state.get("level",1)),str(meta.state.get("difficulty","easy")),room_name,stamp]
   var label_slot:=Label.new()
   label_slot.text=label_text
-  label_slot.custom_minimum_size.x=210
+  label_slot.custom_minimum_size.x=255
+  label_slot.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
   row.add_child(label_slot)
-  make_button(row,"Lưu",func(s=slot):save_manual_slot(s),40)
-  var load_btn:=make_button(row,"Tải",func(s=slot):show_load_slot_confirm(s),40)
+  make_button(row,"Lưu",func():save_manual_slot(slot_id),40)
+  var load_btn:=make_button(row,"Tải",func():show_load_slot_confirm(slot_id),40)
   load_btn.disabled=meta.is_empty()
+  var delete_btn:=make_button(row,"Xóa",func():show_delete_slot_confirm(slot_id),40)
+  delete_btn.disabled=meta.is_empty()
+ make_button(body,"Xuất bản lưu JSON",show_export_dialog,44)
+ make_button(body,"Nhập bản lưu JSON",show_import_dialog,44)
  make_button(body,"Reset phiên hiện tại • giữ 3 ô lưu",show_reset_confirm,46)
  make_button(body,"Xóa tất cả bản lưu V4",show_delete_all_confirm,42)
+
+func show_delete_slot_confirm(slot:int)->void:
+ open_dialog("delete_slot","Xóa ô lưu %d?"%slot)
+ line("Chỉ ô %d cùng file .bak/.tmp liên quan sẽ bị xóa. Autosave và các ô khác được giữ nguyên."%slot,17)
+ make_button(body,"Xóa ô %d"%slot,func():delete_manual_slot(slot),46)
+ make_button(body,"Hủy",show_settings,42)
+
+func delete_manual_slot(slot:int)->void:
+ var ok:=SaveManager.remove_slot(slot)
+ notify("Đã xóa ô %d."%slot if ok else "Không thể xóa ô %d."%slot)
+ show_settings()
+
+func show_export_dialog()->void:
+ if not state.difficulty_chosen:
+  message("Hãy bắt đầu một game trước khi xuất bản lưu.",false)
+  return
+ var fd:=FileDialog.new()
+ fd.access=FileDialog.ACCESS_FILESYSTEM
+ fd.file_mode=FileDialog.FILE_MODE_SAVE_FILE
+ fd.filters=PackedStringArray(["*.json ; EnglishFarm JSON"])
+ fd.current_file="englishfarm-save.json"
+ fd.use_native_dialog=false
+ ui.add_child(fd)
+ fd.file_selected.connect(func(path:String):
+  var ok:=SaveManager.export_current(path,state.to_dict(),current_save_context(),now())
+  notify("Đã xuất bản lưu." if ok else "Không thể xuất bản lưu.")
+  fd.queue_free())
+ fd.canceled.connect(func():fd.queue_free())
+ fd.popup_centered(Vector2i(900,600))
+
+func show_import_dialog()->void:
+ var fd:=FileDialog.new()
+ fd.access=FileDialog.ACCESS_FILESYSTEM
+ fd.file_mode=FileDialog.FILE_MODE_OPEN_FILE
+ fd.filters=PackedStringArray(["*.json ; EnglishFarm JSON"])
+ fd.use_native_dialog=false
+ ui.add_child(fd)
+ fd.file_selected.connect(func(path:String):
+  var result:=SaveManager.import_state(path,State)
+  if load_runtime_result(result):
+   save_game()
+   dialog.hide()
+   if main_menu_panel!=null:main_menu_panel.hide()
+  fd.queue_free())
+ fd.canceled.connect(func():fd.queue_free())
+ fd.popup_centered(Vector2i(900,600))
 
 func show_reset_confirm()->void:
  open_dialog("reset","Xóa toàn bộ dữ liệu game?")
