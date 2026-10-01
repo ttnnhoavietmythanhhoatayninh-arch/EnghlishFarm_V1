@@ -6,18 +6,18 @@ class_name NpcNameTag
 
 @export var npc_name: String = "Noah"
 @export var name_color: Color = Color("#7EC8FF")
-@export var head_y: float = -100.0
-@export var gap_px: float = 6.0
-@export var font_size: int = 18
+@export var head_y: float = -100.0          # y đỉnh đầu so với chân NPC (đơn vị local của NPC, số âm)
+@export var gap_px: float = 6.0             # khoảng cách tên – đỉnh đầu (pixel màn hình)
+@export var font_size: int = 18             # cỡ chữ trên màn hình, không nên < 14
 @export var outline_px: int = 5
-@export var keep_screen_size: bool = true
+@export var keep_screen_size: bool = true   # giữ cỡ chữ cố định khi camera zoom / NPC bị scale
 @export var hide_during_dialog: bool = true
 
 var _label: Label
 
 func _ready() -> void:
 	z_as_relative = false
-	z_index = 100
+	z_index = 100                           # luôn nằm trên nhân vật, cây, nhà
 	position = Vector2(0, head_y)
 	_label = Label.new()
 	_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -38,9 +38,9 @@ func set_npc_name(n: String) -> void:
 	_label.text = n
 	var sz := _label.get_minimum_size()
 	_label.size = sz
-	_label.position = Vector2(-sz.x * 0.5, -gap_px - sz.y)
+	_label.position = Vector2(-sz.x * 0.5, -gap_px - sz.y)   # căn giữa, nằm ngay trên đầu
 
-func set_dialog_open(open: bool) -> void:
+func set_dialog_open(open: bool) -> void:   # gọi từ hệ thống hội thoại nếu muốn ẩn tên khi đang nói chuyện
 	visible = not (hide_during_dialog and open)
 
 func _process(_dt: float) -> void:
