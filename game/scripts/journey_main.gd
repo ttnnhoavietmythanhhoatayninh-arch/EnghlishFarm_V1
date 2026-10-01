@@ -883,17 +883,17 @@ func move_room_player(motion:Vector2,data:Dictionary)->void:
  if motion==Vector2.ZERO:
   return
  var floor:Rect2=Rect2(data.floor_rect).grow(-24)
- var target:=player.position+motion
+ var target:Vector2=player.position+motion
  target.x=clampf(target.x,floor.position.x,floor.end.x)
  target.y=clampf(target.y,floor.position.y,floor.end.y)
  if room_position_walkable(target,data):
   player.position=target
   return
  # Slide along furniture instead of freezing both axes.
- var x_target:=Vector2(target.x,player.position.y)
+ var x_target:Vector2=Vector2(target.x,player.position.y)
  if room_position_walkable(x_target,data):
   player.position=x_target
- var y_target:=Vector2(player.position.x,target.y)
+ var y_target:Vector2=Vector2(player.position.x,target.y)
  if room_position_walkable(y_target,data):
   player.position=y_target
 
