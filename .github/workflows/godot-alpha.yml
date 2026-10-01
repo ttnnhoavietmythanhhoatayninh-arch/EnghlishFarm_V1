@@ -1,4 +1,4 @@
-name: EnglishFarm Journey V3 test and Windows build
+name: EnglishFarm Journey V4 test and Windows build
 
 on:
   push:
@@ -98,7 +98,7 @@ jobs:
       - name: Upload Windows demo
         uses: actions/upload-artifact@v4
         with:
-          name: EnglishFarm-Journey-V3-Windows
+          name: EnglishFarm-Journey-V4-Windows
           path: build/windows/
           if-no-files-found: error
 
