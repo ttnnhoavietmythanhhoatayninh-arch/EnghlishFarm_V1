@@ -3,6 +3,16 @@ extends Node2D
 # V4 room layouts follow EnglishFarm_Pixel_Guide_Rooms_V4:
 # shared sage wall + wood beam + two windows + checker tiles + warm light from right.
 # Only Lily's library uses many bookshelves.
+const V4_ROOM_ART={
+ "home":"res://game/assets/v4/rooms/01-home-upper.webp",
+ "lily":"res://game/assets/v4/rooms/02-library-upper.webp",
+ "emma":"res://game/assets/v4/rooms/03-post-office-upper.webp",
+ "ben":"res://game/assets/v4/rooms/04-workshop-upper.webp",
+ "clara":"res://game/assets/v4/rooms/05-bank-upper.webp",
+ "tom":"res://game/assets/v4/rooms/06-garden-shed-upper.webp",
+ "noah":"res://game/assets/v4/rooms/07-pier-hut-upper.webp"
+}
+
 const ROOMS={
  "home":{
   "title":"Nhà chính","color_main":"d9b995",
@@ -83,18 +93,41 @@ var upgraded:=false
 func room_data(id:String)->Dictionary:
  return ROOMS.get(id,ROOMS.home)
 
+func v4_art_path(id:String)->String:
+ return str(V4_ROOM_ART.get(id,""))
+
+func has_v4_art(id:String)->bool:
+ var path:=v4_art_path(id)
+ return not path.is_empty() and ResourceLoader.exists(path)
+
+func draw_v4_upper(id:String)->bool:
+ var path:=v4_art_path(id)
+ if path.is_empty() or not ResourceLoader.exists(path):
+  return false
+ var texture:Texture2D=load(path)
+ if texture==null:
+  return false
+ # Processed V4 layer contains only the upper 1280x380 room area.
+ # It intentionally excludes the baked Momo, fake Exit button and fake toolbar.
+ draw_texture_rect(texture,Rect2(0,0,1280,380),false)
+ return true
+
 func _draw()->void:
  var data:Dictionary=room_data(kind)
  draw_room_shell(Color(data.color_main))
- match kind:
-  "home":draw_home()
-  "lily":draw_library()
-  "mia":draw_market()
-  "emma":draw_post()
-  "ben":draw_workshop()
-  "clara":draw_bank()
-  "tom":draw_garden_shed()
-  "noah":draw_pier_hut()
+ var used_v4:=draw_v4_upper(kind)
+ if not used_v4:
+  match kind:
+   "home":draw_home()
+   "lily":draw_library()
+   "mia":draw_market()
+   "emma":draw_post()
+   "ben":draw_workshop()
+   "clara":draw_bank()
+   "tom":draw_garden_shed()
+   "noah":draw_pier_hut()
+ elif kind=="mia":
+  draw_market()
  draw_exit(data.exit_zone)
 
 func draw_room_shell(main:Color)->void:

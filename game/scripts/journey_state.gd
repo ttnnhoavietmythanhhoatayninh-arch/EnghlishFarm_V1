@@ -3,6 +3,7 @@ const LEVEL_TASKS={1:["vocabulary","reading","harvest"],2:["delivery","grammar",
 var level:=1
 var onboarded:=false
 var difficulty_chosen:=false
+var tutorial_index:=0
 var studied:Dictionary={}
 var completed:Dictionary={}
 var bank_balance:=0
@@ -78,14 +79,14 @@ func harvest(index:int,time:int)->int:
  return result
 func to_dict()->Dictionary:
  var d:Dictionary=super.to_dict()
- d.merge({"journey_version":1,"level":level,"onboarded":onboarded,"difficulty_chosen":difficulty_chosen,"studied":studied,"completed":completed,"bank_balance":bank_balance,"fish":fish,"house_level":house_level,"orchard_open":orchard_open,"outfit_owned":outfit_owned,"delivery_active":delivery_active,"delivery_seconds":delivery_seconds,"fishing_day":fishing_day,"harvested_total":harvested_total})
+ d.merge({"journey_version":1,"level":level,"onboarded":onboarded,"difficulty_chosen":difficulty_chosen,"tutorial_index":tutorial_index,"studied":studied,"completed":completed,"bank_balance":bank_balance,"fish":fish,"house_level":house_level,"orchard_open":orchard_open,"outfit_owned":outfit_owned,"delivery_active":delivery_active,"delivery_seconds":delivery_seconds,"fishing_day":fishing_day,"harvested_total":harvested_total})
  return d
 func load_from(path:String)->bool:
  if not super.load_from(path):return false
  var d:Dictionary=JSON.parse_string(FileAccess.get_file_as_string(path))
  if d.get("journey_version")!=1:return false
  level=clampi(int(d.get("level",1)),1,5)
- onboarded=bool(d.get("onboarded",false));difficulty_chosen=bool(d.get("difficulty_chosen",false))
+ onboarded=bool(d.get("onboarded",false));difficulty_chosen=bool(d.get("difficulty_chosen",false));tutorial_index=clampi(int(d.get("tutorial_index",0)),0,8)
  studied=d.get("studied",{}) if d.get("studied",{}) is Dictionary else {}
  completed=d.get("completed",{}) if d.get("completed",{}) is Dictionary else {}
  bank_balance=maxi(0,int(d.get("bank_balance",0)));fish=maxi(0,int(d.get("fish",0)))
