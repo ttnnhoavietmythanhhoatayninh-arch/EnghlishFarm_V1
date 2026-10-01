@@ -5,6 +5,7 @@ const Nav=preload("res://game/scripts/journey_navigation.gd")
 const Style=preload("res://game/scripts/journey_theme.gd")
 const Mini=preload("res://game/scripts/journey_map.gd")
 const Room=preload("res://game/scripts/journey_room.gd")
+const SaveManager=preload("res://game/scripts/journey_save_manager.gd")
 const GUIDE_PAGES=[
  ["Cho Momo đi và trò chuyện","1. Đi đến một chỗ: Nhấp chuột trái vào mặt đất.\n\n2. Đi bằng bàn phím: Dùng W A S D hoặc các phím mũi tên.\n\n3. Trò chuyện và vào nhà: Nhấp nhân vật để nói chuyện. Nhấp biển cửa để vào.\n\nĐứng gần nhân vật và nhấn E cũng mở trò chuyện. Esc hoặc × để đóng."],
  ["Học trước, làm bài sau","1. Mở Learn: Chọn mục Từ vựng để học 3 từ.\n\n2. Xem từng thẻ từ: Đọc nghĩa tiếng Việt và câu ví dụ.\n\n3. Làm bài kiểm tra: Chọn đáp án. Chưa đúng thì xem lại và thử tiếp.\n\nNút đọc từ chỉ phát tiếng nếu máy có giọng đọc tiếng Anh."],
@@ -16,7 +17,7 @@ const GUIDE_PAGES=[
  ["Khám phá từng nơi trong thị trấn","1. Cấp 1 · Bắt đầu ở nông trại: Lily dạy học, Tom hướng dẫn chăm vườn.\n\n2. Cấp 2 · Mở thêm địa điểm: Vào thư viện, chợ Mia và bưu điện Emma.\n\n3. Cấp 3 · Khám phá tiếp: Ben sửa nhà, Clara giữ thẻ, Noah dạy câu cá.\n\nCấp 4 mở vườn cây và vật phẩm mới. Vùng phủ xanh là nơi chưa mở."],
  ["Cần hỗ trợ? Các nút ở đây","1. ? Help hoặc F1: Mở lại toàn bộ hướng dẫn.\n\n2. Settings = Cài đặt: Đổi độ khó, cỡ chữ và thời gian cây lớn.\n\n3. Map = Bản đồ: Xem vị trí Momo và các nơi trong thị trấn.\n\nMuốn đổi thời gian cây, hãy thu hoạch hoặc dọn hết cây trước. Tiến trình tự lưu."]
 ]
-const SAVE="user://englishfarm_journey_v3.json"
+const LEGACY_SAVE="user://englishfarm_journey_v3.json"
 const TASK_NAMES={"vocabulary":"Học và nhớ 3 từ","reading":"Học cách đọc, mở 3 hạt","harvest":"Thu hoạch 3 củ cà rốt","delivery":"Giao hàng cho Mia","grammar":"Học và làm ngữ pháp","letter":"Học viết và gửi thư","house":"Nâng cấp căn nhà","fishing":"Câu được một con cá","bank":"Gửi thẻ vào ngân hàng","orchard":"Mở vườn cây ăn quả","outfit":"Mua trang phục","power":"Mua thêm một Power"}
 var state=State.new()
 var art:RefCounted
@@ -50,6 +51,9 @@ var room_has_target:=false
 var command_buttons:Array[Button]=[]
 var current_room:=""
 var world_player_position:=Vector2.ZERO
+var pending_restore_context:Dictionary={}
+var last_autosave_position:=Vector2.INF
+var autosave_clock:=0.0
 var writing:TextEdit
 var quiz_kind:=""
 var quiz_index:=0
@@ -76,13 +80,83 @@ var refresh_clock:=0.0
 @onready var player=$Momo
 func now()->int:return int(Time.get_unix_time_from_system())
 func crop_time()->int:return int(Time.get_unix_time_from_system()*2160) if state.demo_mode else now()
+
+func current_save_context()->Dictionary:
+ return {
+  "world_player_position":world_player_position,
+  "current_room":current_room,
+  "room_player_position":player.position if interior!=null and interior.visible else Vector2(640,500),
+  "return_world_position":world_player_position
+ }
+
+func restore_boot_state()->void:
+ var loaded:=SaveManager.load_autosave_state(State)
+ if bool(loaded.get("ok",false)):
+  state=loaded.state
+  pending_restore_context=loaded.context
+  return
+ var migrated:=SaveManager.migrate_v3(LEGACY_SAVE,State)
+ if bool(migrated.get("ok",false)):
+  state=migrated.state
+  pending_restore_context=migrated.context
+
+func apply_loaded_context(context:Dictionary)->void:
+ player.stop()
+ pending_npc=""
+ pending_door=""
+ fishing_running=false
+ room_has_target=false
+ dialog.hide()
+ map_panel.hide()
+ var world_pos:=SaveManager.json_to_vec(context.get("world_player_position",{}),Vector2(400,1380))
+ var safe_world:=nav.safe_walkable_near(world_pos,420.0)
+ if not safe_world.is_finite():
+  safe_world=nav.safe_walkable_near(Vector2(400,1380),420.0)
+ if not safe_world.is_finite():
+  safe_world=Vector2(400,1380)
+ if player.get_parent()!=self:
+  player.reparent(self)
+ player.global_position=safe_world
+ world_player_position=safe_world
+ var room_id:=str(context.get("current_room",""))
+ var room_data:=interior.room_data(room_id) if not room_id.is_empty() else {}
+ var n:=npc_by_id(room_id)
+ if not room_id.is_empty() and not n.is_empty() and state.level>=int(n.level):
+  enter_room(room_id)
+  var room_pos:=SaveManager.json_to_vec(context.get("room_player_position",{}),Vector2(640,500))
+  if room_position_walkable(room_pos,room_data):
+   player.position=room_pos
+  else:
+   player.position=Vector2(640,500)
+ else:
+  interior.hide()
+  room_ui.hide()
+  current_room=""
+  player.get_node("Camera2D").enabled=true
+  hint.show()
+ nav.unlocked_level=state.level
+ quest_level=state.level
+ refresh_hud()
+ update_world()
+ refresh_crops()
+ last_autosave_position=player.global_position
+
+func load_runtime_result(result:Dictionary)->bool:
+ if not bool(result.get("ok",false)):
+  notify("Bản lưu không hợp lệ hoặc đã hỏng. Phiên hiện tại được giữ nguyên.")
+  return false
+ state=result.state
+ nav.unlocked_level=state.level
+ apply_loaded_context(result.context)
+ notify("Đã tải bản lưu.")
+ return true
 func _ready()->void:
  texture_filter=CanvasItem.TEXTURE_FILTER_NEAREST
  art=Art.new();nav=Nav.new()
  world=load("res://game/assets/town.png");starter=load("res://game/assets/town_starter.png")
  curriculum=JSON.parse_string(FileAccess.get_file_as_string("res://data/curriculum_v3.json"))
  lessons=JSON.parse_string(FileAccess.get_file_as_string("res://data/learning_v1.json"))
- if persistence_enabled:state.load_from(SAVE)
+ if persistence_enabled:restore_boot_state()
  state.claim_login(now());nav.unlocked_level=state.level;quest_level=state.level
  player.configure(art,nav);player.position=Vector2(200,690)*2;world_player_position=player.position
  player.get_node("Camera2D").zoom=Vector2.ONE*0.85
@@ -90,8 +164,11 @@ func _ready()->void:
   var event:=InputEventKey.new();event.physical_keycode=pair[1]
   if not InputMap.action_has_event(pair[0],event):InputMap.action_add_event(pair[0],event)
  setup_people();build_ui();build_world_objects();update_world();refresh_hud()
+ if not pending_restore_context.is_empty():
+  apply_loaded_context(pending_restore_context)
+  pending_restore_context={}
  if not state.difficulty_chosen:show_difficulty()
- elif not state.onboarded:show_guide(0)
+ elif not state.onboarded:show_guide(state.tutorial_index)
  else:notify("Chào Momo! Nhấn ? để xem hướng dẫn; Tasks để xem việc cần làm.")
  save_game()
 func current_texture()->Texture2D:return world if state.house_level>=2 else starter
@@ -203,7 +280,41 @@ func message(text:String,good:bool=true)->void:
  feedback.text=text;feedback.modulate=Color("466635") if good else Color("a44c32")
 func notify(text:String)->void:toast.text=text;toast.show();toast_timer=6.0
 func save_game()->void:
- if persistence_enabled and not state.save_to(SAVE):notify("Không lưu được. Kiểm tra dung lượng và quyền ghi trên máy.")
+ if not persistence_enabled:return
+ if not SaveManager.write_autosave(state.to_dict(),current_save_context(),now()):
+  notify("Không lưu được. Kiểm tra dung lượng và quyền ghi trên máy.")
+ else:
+  last_autosave_position=player.global_position
+
+func save_manual_slot(slot:int)->void:
+ var existing:=SaveManager.read_slot(slot)
+ if not existing.is_empty():
+  show_save_slot_confirm(slot)
+  return
+ commit_manual_slot(slot)
+
+func commit_manual_slot(slot:int)->void:
+ var ok:=SaveManager.write_slot(slot,state.to_dict(),current_save_context(),now())
+ notify("Đã lưu vào ô %d."%slot if ok else "Không thể ghi ô lưu %d."%slot)
+ if screen=="save_overwrite":show_settings()
+
+func show_save_slot_confirm(slot:int)->void:
+ open_dialog("save_overwrite","Ghi đè ô lưu %d?"%slot)
+ line("Ô này đã có dữ liệu. Bản cũ sẽ được giữ ở file .bak để có thể phục hồi khi file chính hỏng.",17)
+ make_button(body,"Ghi đè ô %d"%slot,func():commit_manual_slot(slot),46)
+ make_button(body,"Hủy",show_settings,42)
+
+func show_load_slot_confirm(slot:int)->void:
+ if SaveManager.read_slot(slot).is_empty():
+  notify("Ô lưu %d đang trống."%slot)
+  return
+ open_dialog("load_confirm","Tải ô lưu %d?"%slot)
+ line("Tiến trình chưa tự lưu gần nhất sẽ bị thay bởi dữ liệu trong ô này.",17)
+ make_button(body,"Tải ngay",func():load_manual_slot(slot),46)
+ make_button(body,"Hủy",show_settings,42)
+
+func load_manual_slot(slot:int)->void:
+ load_runtime_result(SaveManager.load_slot_state(slot,State))
 func refresh_hud()->void:
  hud.text="Lv.%d • %d/3 việc  |  Cards %d  |  Powers %d"%[state.level,state.level_points(),state.cards,state.powers]
  if state.level==5:hud.text="Lv.5 • Hoàn thành chương thử  | Cards %d | Powers %d"%[state.cards,state.powers]
@@ -245,6 +356,12 @@ func _process(delta:float)->void:
   fishing_elapsed+=delta;fishing_position=fmod(fishing_elapsed*0.45,1.0)
   if is_instance_valid(fishing_slider):fishing_slider.value=fishing_position*100
  refresh_clock+=delta
+ autosave_clock+=delta
+ if state.onboarded and autosave_clock>=30.0:
+  autosave_clock=0.0
+  var moved:=last_autosave_position==Vector2.INF or player.global_position.distance_to(last_autosave_position)>4.0
+  if moved or state.delivery_active:
+   save_game()
  if refresh_clock>0.4:
   refresh_clock=0;refresh_crops();minimap.queue_redraw()
   if dialog.visible:fit_dialog_layout()
@@ -320,6 +437,8 @@ func select_difficulty(mode:String)->void:
 func show_guide(index:int)->void:
  if not state.difficulty_chosen:return
  guide_index=clampi(index,0,GUIDE_PAGES.size()-1)
+ state.tutorial_index=guide_index
+ if not state.onboarded:save_game()
  open_dialog("guide","Hướng dẫn • %d/%d"%[guide_index+1,GUIDE_PAGES.size()])
  line(GUIDE_PAGES[guide_index][0],22)
  line(GUIDE_PAGES[guide_index][1],17)
@@ -557,7 +676,24 @@ func show_settings()->void:
    if state.crop_status(i,crop_time())=="wilted":state.plots[i]={}
   changed();refresh_crops();message("Đã dọn cây héo; từ đã học vẫn giữ nguyên."))
  line("Dữ liệu được tự lưu trên máy. Không cần tài khoản.",16)
- make_button(body,"Xóa dữ liệu game • Reset",show_reset_confirm,46)
+ line("Lưu thủ công",21)
+ for slot in [1,2,3]:
+  var row:=HBoxContainer.new()
+  row.add_theme_constant_override("separation",10)
+  body.add_child(row)
+  var meta:=SaveManager.read_slot(slot)
+  var label_text:="Ô %d • Trống"%slot
+  if not meta.is_empty():
+   label_text="Ô %d • Lv.%d • %s"%[slot,int(meta.state.get("level",1)),str(meta.state.get("difficulty","easy"))]
+  var label_slot:=Label.new()
+  label_slot.text=label_text
+  label_slot.custom_minimum_size.x=210
+  row.add_child(label_slot)
+  make_button(row,"Lưu",func(s=slot):save_manual_slot(s),40)
+  var load_btn:=make_button(row,"Tải",func(s=slot):show_load_slot_confirm(s),40)
+  load_btn.disabled=meta.is_empty()
+ make_button(body,"Reset phiên hiện tại • giữ 3 ô lưu",show_reset_confirm,46)
+ make_button(body,"Xóa tất cả bản lưu V4",show_delete_all_confirm,42)
 
 func show_reset_confirm()->void:
  open_dialog("reset","Xóa toàn bộ dữ liệu game?")
@@ -571,13 +707,22 @@ func show_reset_confirm()->void:
  var erase:=make_button(row,"Xóa dữ liệu và chơi lại",reset_game_data,48)
  erase.custom_minimum_size.x=260
 
-func erase_save_file()->bool:
- if not FileAccess.file_exists(SAVE):return true
- return DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE))==OK
-
 func reset_game_data()->void:
- if not erase_save_file():
-  message("Không thể xóa dữ liệu lưu. Hãy kiểm tra quyền ghi của thư mục game.",false)
+ if not SaveManager.remove_autosave():
+  message("Không thể xóa autosave. Hãy kiểm tra quyền ghi của thư mục game.",false)
+  return
+ persistence_enabled=false
+ get_tree().reload_current_scene()
+
+func show_delete_all_confirm()->void:
+ open_dialog("delete_all","Xóa tất cả bản lưu V4?")
+ line("Thao tác này xóa autosave và cả 3 ô lưu thủ công, gồm .bak/.tmp liên quan. File V3 cũ vẫn được giữ làm bản nguồn migration.",17)
+ make_button(body,"Xóa tất cả",delete_all_v4_saves,48)
+ make_button(body,"Hủy",show_settings,42)
+
+func delete_all_v4_saves()->void:
+ if not SaveManager.remove_all_v4():
+  message("Không thể xóa hết bản lưu. Một số file có thể đang bị khóa.",false)
   return
  persistence_enabled=false
  get_tree().reload_current_scene()
