@@ -1,4 +1,4 @@
-name: EnglishFarm Journey V3 test and Windows build
+name: EnglishFarm Journey V4 test and Windows build
 
 on:
   push:
@@ -37,13 +37,10 @@ jobs:
           godot --headless --path . --editor --quit 2>&1 | tee import.log
           ! grep -Eq 'SCRIPT ERROR:|Parse Error:|ERROR:' import.log
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
       - name: Run all test suites and stop on first error
-        run: python tools/run_tests.py --godot godot
+        run: |
+          python3 --version
+          python3 tools/run_tests.py --godot godot
 
       - name: Install virtual display for visual checks
         run: |
