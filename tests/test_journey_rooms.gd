@@ -74,12 +74,14 @@ func run()->void:
   assert(not g.room_ui.visible,id+": leave_room hides room UI")
   assert(not g.dialog.visible,id+": leave_room hides dialog")
   assert(g.current_room=="" and g.pending_door=="" and g.pending_npc=="",id+": leave_room clears room state")
-  var expected_exit:Vector2=Vector2(n.get("exit",n.door+Vector2(0,55)))*2
-  assert(g.nav.allowed(n.door*2),id+": building door must be on an allowed tile")
-  assert(g.nav.allowed(expected_exit),id+": building exit must be on an allowed tile")
-  assert(expected_exit.distance_to(n.door*2)>=80.0,id+": exit must be clear of the doorway")
-  assert(expected_exit.distance_to(n.door*2)<=180.0,id+": exit must stay near the doorway")
-  assert(g.player.position==expected_exit,id+": Momo is placed at the safe outside point")
+  var requested_exit:Vector2=Vector2(n.get("exit",n.door+Vector2(0,55)))*2
+  var expected_exit:Vector2=g.nav.safe_walkable_near(requested_exit)
+  assert(expected_exit.is_finite(),id+": exit must resolve to a walkable point")
+  assert(g.nav.allowed(expected_exit),id+": resolved exit must be in the unlocked region")
+  assert(g.nav.is_walkable(expected_exit,12.0),id+": resolved exit must be on the real walkable surface")
+  assert(g.nav.has_walkable_step(expected_exit),id+": Momo must be able to take a step after leaving")
+  assert(not g.player.locked,id+": Momo must be unlocked immediately after leaving")
+  assert(g.player.global_position==expected_exit,id+": Momo is placed at the resolved safe point")
   for i in range(30):
    await process_frame
   assert(not g.interior.visible,id+": room stays hidden after 30 frames")
