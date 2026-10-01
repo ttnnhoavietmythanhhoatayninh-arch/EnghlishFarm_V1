@@ -1160,6 +1160,7 @@ func enter_room(id:String)->void:
  player.show()
  tip_once("room","Nhấn Esc để ra ngoài.")
  update_room_hint()
+ save_game()
 
 func leave_room()->void:
  var room_id:=current_room
@@ -1191,6 +1192,7 @@ func leave_room()->void:
  hint.show()
  for b in command_buttons:b.show()
  get_viewport().gui_release_focus()
+ save_game()
 
 func room_position_walkable(point:Vector2,data:Dictionary)->bool:
  var floor:Rect2=Rect2(data.floor_rect).grow(-24)
