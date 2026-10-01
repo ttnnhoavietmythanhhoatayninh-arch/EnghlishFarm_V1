@@ -676,8 +676,14 @@ func leave_room()->void:
  camera.enabled=true
  player.stop()
  if not n.is_empty():
-  var outside:Vector2=n.get("exit",n.door+Vector2(0,55))
-  player.position=outside*2
+  var requested_exit:Vector2=Vector2(n.get("exit",n.door+Vector2(0,55)))*2
+  var safe_exit:Vector2=nav.safe_walkable_near(requested_exit)
+  if safe_exit.is_finite():
+   player.global_position=safe_exit
+  else:
+   var safe_door:Vector2=nav.safe_walkable_near(Vector2(n.door)*2)
+   player.global_position=safe_door if safe_door.is_finite() else Vector2(n.door)*2
+ player.locked=not state.onboarded or state.delivery_active
  hint.show()
  for b in command_buttons:b.show()
  get_viewport().gui_release_focus()
