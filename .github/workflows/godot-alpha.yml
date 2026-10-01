@@ -1,0 +1,120 @@
+name: EnglishFarm Journey V3 test and Windows build
+
+on:
+  push:
+    branches: ["main", "codex/englishfarm-v1"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container:
+      image: barichello/godot-ci:4.3
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup export templates
+        run: |
+          mkdir -p "$HOME/.local/share/godot/export_templates"
+          if [ -d /root/.local/share/godot/export_templates/4.3.stable ]; then
+            cp -r /root/.local/share/godot/export_templates/4.3.stable "$HOME/.local/share/godot/export_templates/4.3.stable"
+          elif [ -d /root/.local/share/godot/templates/4.3.stable ]; then
+            cp -r /root/.local/share/godot/templates/4.3.stable "$HOME/.local/share/godot/export_templates/4.3.stable"
+          else
+            exit 1
+          fi
+
+      - name: Import project and fail on parse errors
+        run: |
+          set -o pipefail
+          godot --headless --path . --editor --quit 2>&1 | tee import.log
+          ! grep -Eq 'SCRIPT ERROR:|Parse Error:|ERROR:' import.log
+
+      - name: Test gameplay in Godot
+        run: |
+          set -o pipefail
+          timeout 120 godot --headless --verbose --path . --script tests/test_game.gd 2>&1 | tee test.log
+          grep -q 'ENGLISH_FARM_TESTS_PASSED' test.log
+          ! grep -Eq 'SCRIPT ERROR:|Parse Error:|ERROR:' test.log
+
+      - name: Test new learning state and UI
+        run: |
+          set -o pipefail
+          timeout 60 godot --headless --path . --script tests/test_learning.gd 2>&1 | tee learning-state.log
+          grep -q 'Learning state failures: 0' learning-state.log
+          ! grep -Eq 'SCRIPT ERROR:|ERROR:' learning-state.log
+          timeout 60 godot --headless --path . --script tests/test_learning_ui.gd 2>&1 | tee learning-ui.log
+          grep -q 'Learning UI integration: passed' learning-ui.log
+          ! grep -Eq 'SCRIPT ERROR:|ERROR:' learning-ui.log
+
+      - name: Test town navigation and complete order
+        run: |
+          set -o pipefail
+          timeout 60 godot --headless --path . --script tests/test_town.gd 2>&1 | tee town.log
+          grep -q TOWN_TESTS_PASSED town.log
+          ! grep -Eq 'SCRIPT ERROR:|ERROR:' town.log
+          timeout 60 godot --headless --path . --script tests/test_town_ui.gd 2>&1 | tee town-ui.log
+          grep -q TOWN_UI_TESTS_PASSED town-ui.log
+          ! grep -Eq 'SCRIPT ERROR:|ERROR:' town-ui.log
+
+      - name: Test Journey progression, UI and layout
+        run: |
+          set -o pipefail
+          for suite in journey journey_ui journey_layout; do
+            timeout 60 godot --headless --path . --script tests/test_${suite}.gd 2>&1 | tee ${suite}.log
+            grep -q 'PASSED' ${suite}.log
+            ! grep -Eq 'SCRIPT ERROR:|ERROR:' ${suite}.log
+          done
+
+      - name: Install virtual display for visual checks
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq xvfb xauth libgl1-mesa-dri
+
+      - name: Capture actual game screens
+        env:
+          LIBGL_ALWAYS_SOFTWARE: "1"
+        run: |
+          set -o pipefail
+          timeout 90 xvfb-run -a -s "-screen 0 1280x720x24" godot --path . --audio-driver Dummy --rendering-driver opengl3 --script tests/capture_journey.gd 2>&1 | tee capture.log
+          grep -q 'JOURNEY_SCREENSHOTS_PASSED' capture.log
+          ! grep -Eq 'SCRIPT ERROR:|Parse Error:|ERROR:' capture.log
+
+      - name: Export Windows demo
+        run: |
+          set -o pipefail
+          mkdir -p build/windows
+          godot --headless --path . --export-release "Windows Desktop" "build/windows/EnglishFarm.exe" 2>&1 | tee export.log
+          ! grep -Eq 'SCRIPT ERROR:|Parse Error:|ERROR:' export.log
+          cp docs/PLAY_DEMO_VI.txt build/windows/HUONG_DAN.txt
+
+      - name: Upload Windows demo
+        uses: actions/upload-artifact@v4
+        with:
+          name: EnglishFarm-Journey-V3-Windows
+          path: build/windows/
+          if-no-files-found: error
+
+      - name: Upload verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: EnglishFarm-Verification
+          path: |
+            test-output/
+            import.log
+            test.log
+            learning-state.log
+            learning-ui.log
+            town.log
+            town-ui.log
+            journey*.log
+            capture.log
+            export.log

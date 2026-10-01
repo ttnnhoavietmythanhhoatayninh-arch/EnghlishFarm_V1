@@ -1,0 +1,19 @@
+ENGLISHFARM JOURNEY V3 — BẢN THỬ WINDOWS
+Giải nén toàn bộ ZIP. Giữ EnglishFarm.exe và EnglishFarm.pck cùng thư mục, rồi mở EXE.
+
+LẦN ĐẦU: chọn Easy / Normal / Hard, đọc 6 trang hướng dẫn. Nút × đóng bảng; ? hoặc F1 mở lại hướng dẫn.
+DI CHUYỂN: WASD/mũi tên hoặc nhấp mặt đất. Nhấp NPC để tới nói chuyện; E khi đứng gần. Nhấp biển cửa để vào phòng. Esc đóng bảng. M bật bản đồ nhỏ.
+
+LEARN: học từ (IPA, trọng âm, nghĩa Việt, giải thích Anh, cách dùng, ví dụ), ngữ pháp, cách đọc và viết trước khi làm bài. Places giải thích tên địa điểm. Nút phát âm dùng giọng tiếng Anh có trên hệ điều hành; thiếu giọng vẫn đọc được IPA.
+FARM: Plant gieo; Water tưới; Harvest thu hoạch. Bản thử cây lớn 20 giây, cần tưới trong 60 giây. Có thể chuyển sang 12 giờ trong Settings khi ruộng trống.
+LETTERS: xem hướng dẫn viết, viết ít nhất 10 từ, tự kiểm rồi gửi cho Emma. Chưa chấm chất lượng bằng AI.
+SETTINGS: đổi độ khó, cỡ chữ, thời gian cây. TASKS: xem 3 việc của cấp. MAP: góc trên phải. HELP: hướng dẫn.
+
+CẤP 1: học và làm 3 từ; đọc và trả lời 3 câu để nhận hạt; gieo, tưới, thu hoạch 3 củ. Khởi đầu nhà gỗ nhỏ và 3 ô ruộng.
+CẤP 2: nhận đơn Mia, giao 3 cà rốt bằng xe (chờ xe tới nơi); học/làm ngữ pháp; học/viết/gửi thư. Giao hàng nhận 8 cards, 5 gỗ.
+CẤP 3: gặp Ben dùng 5 gỗ nâng nhà; gặp Noah câu cá (kéo khi thanh ở 40–70); gửi cards vào ngân hàng Clara. Có thể rút lại cards. Câu cá thưởng một lần mỗi ngày.
+CẤP 4: mua mở vườn 6 cards (thêm 3 ô), trang phục 4 cards, Power 3 cards. Ôn từ, thu hoạch để kiếm thêm cards.
+CẤP 5: kết thúc chương thử, tiếp tục ôn/chăm vườn. Mỗi cấp cần 3 nhiệm vụ riêng, mỗi việc đầy 1/3 thanh; lên cấp thêm 1 Power.
+
+Dữ liệu lưu ngoại tuyến riêng cho V3; không tự nhập tiến trình V2. Đây là hồ sơ chơi cục bộ, chưa có đăng nhập tài khoản mạng.
+Nội thất hiện là màn tương tác bằng nút. 7 NPC người dùng lại 3 bộ sprite; Momo là mèo. Chưa có chấm AI, multiplayer, Android/iOS, chương trình học đầy đủ hoặc bằng chứng hiệu quả học tập.

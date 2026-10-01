@@ -1,0 +1,9 @@
+.godot/
+build/
+test-output/
+*.tmp
+
+node_modules/
+art-preview/out/
+*.log
+.env

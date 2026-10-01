@@ -1,0 +1,26 @@
+{
+ "easy": {
+  "words":[{"word":"seed","definition":"A small thing you plant to grow a new plant.","example":"Put a seed in the soil."},{"word":"water","definition":"The clear liquid plants need to grow.","example":"Give the carrot some water."},{"word":"soil","definition":"The earth in which plants grow.","example":"The soil is wet."}],
+  "passage":"Momo plants carrot seeds in the morning. Carrots need loose soil and water. Momo checks the garden every day. The seed bag contains three seeds.",
+  "questions":[{"prompt":"What does Momo plant?","answers":["carrots","carrot seeds","carrot"]},{"prompt":"When does Momo plant them?","answers":["in the morning","morning"]},{"prompt":"How many seeds are in the bag?","answers":["3","three","three seeds"]}],
+  "hint":"A vegetable, a time of day, a number.",
+  "grammar":{"prompt":"Complete: Momo ___ the garden every day. (check/checks)","answer":"checks","explanation":"Use checks with a third-person singular subject in the present simple."},
+  "writing":"Tom needs three carrots tomorrow. Write a short reply: greet Tom, confirm the quantity, and say when he can collect them. Aim for 30–50 words."
+ },
+ "normal": {
+  "words":[{"word":"harvest","definition":"To collect a crop when it is ready.","example":"We harvest carrots in autumn."},{"word":"moisture","definition":"A small amount of water in soil or air.","example":"Mulch helps the soil retain moisture."},{"word":"delivery","definition":"The act of taking goods to a customer.","example":"Our delivery arrives on Friday."}],
+  "passage":"Tom has ordered carrots for Friday's market. Because heavy rain is expected on Thursday, Momo plans to harvest on Wednesday. The carrots will be stored in a cool shed. Tom will collect them himself, so no delivery fee is required.",
+  "questions":[{"prompt":"On which day will Momo harvest?","answers":["wednesday","on wednesday"]},{"prompt":"Where will the carrots be stored?","answers":["a cool shed","in a cool shed","shed","cool shed"]},{"prompt":"Who will collect the carrots?","answers":["tom"]}],
+  "hint":"Harvest is before the rain; look for the storage place and the customer's name.",
+  "grammar":{"prompt":"Complete: If it rains, we ___ the crates inside. (will move/moved)","answer":"will move","explanation":"A first conditional uses present simple after if and will + verb for the result."},
+  "writing":"Reply to Tom explaining the changed harvest schedule, confirming collection, and proposing a backup plan if rain continues. Aim for 80–120 words."
+ },
+ "hard": {
+  "words":[{"word":"contingency","definition":"A possible future event for which a backup plan is made.","example":"We need a contingency plan for flooding."},{"word":"sustainable","definition":"Able to continue over time without exhausting resources.","example":"Crop rotation supports sustainable farming."},{"word":"viability","definition":"The ability of a plan or project to work successfully.","example":"The team assessed the farm's financial viability."}],
+  "passage":"The cooperative is considering a subscription scheme to stabilise income. Although advance payments could reduce uncertainty, members worry that fixed weekly deliveries would leave little flexibility during poor harvests. Momo proposes a trial with seasonal substitutions and a transparent refund policy, rather than an immediate full-scale launch. The trial's success will be judged by retention and customer feedback, not revenue alone.",
+  "questions":[{"prompt":"What type of scheme is proposed?","answers":["subscription","a subscription scheme","subscription scheme"]},{"prompt":"What policy would protect customers financially?","answers":["refund policy","a refund policy","a transparent refund policy","transparent refund policy"]},{"prompt":"Which metric besides feedback will judge success?","answers":["retention","customer retention"]}],
+  "hint":"Regular membership payments; reimbursement; keeping customers.",
+  "grammar":{"prompt":"Complete: Had we anticipated the drought, we ___ fewer seeds. (would have planted/will plant)","answer":"would have planted","explanation":"Inverted third conditional: Had + subject + past participle, would have + past participle."},
+  "writing":"Write a reasoned letter to the cooperative weighing the subscription scheme's benefits and risks. Recommend a trial and explain how substitutions, refunds and success metrics should work. Aim for 150–200 words."
+ }
+}

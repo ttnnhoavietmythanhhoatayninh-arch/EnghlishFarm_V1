@@ -1,0 +1,301 @@
+{
+  "words": {
+    "easy": [
+      {
+        "word": "seed",
+        "ipa": "/siːd/",
+        "stress": "1 âm tiết: SEED",
+        "vi": "hạt giống",
+        "explanation": "A small part of a plant that can grow into a new plant.",
+        "use": "Danh từ đếm được: a seed / three seeds. Dùng với plant (gieo).",
+        "example": "Plant a seed in the soil.",
+        "translation": "Gieo một hạt giống vào đất."
+      },
+      {
+        "word": "water",
+        "ipa": "/ˈwɔːtə(r)/",
+        "stress": "2 âm tiết: WA-ter; nhấn âm 1",
+        "vi": "nước; tưới nước",
+        "explanation": "A clear liquid that plants need. As a verb, it means to give water to a plant.",
+        "use": "Danh từ không đếm được: some water. Động từ: water the plants.",
+        "example": "Water the carrots every day.",
+        "translation": "Tưới cà rốt mỗi ngày."
+      },
+      {
+        "word": "soil",
+        "ipa": "/sɔɪl/",
+        "stress": "1 âm tiết: SOIL",
+        "vi": "đất trồng",
+        "explanation": "The top layer of earth in which plants grow.",
+        "use": "Danh từ thường không đếm được: dry soil, wet soil.",
+        "example": "The soil is wet.",
+        "translation": "Đất đang ẩm."
+      }
+    ],
+    "normal": [
+      {
+        "word": "harvest",
+        "ipa": "/ˈhɑːvɪst/",
+        "stress": "2 âm tiết: HAR-vest; nhấn âm 1",
+        "vi": "thu hoạch; vụ thu hoạch",
+        "explanation": "To collect a crop when it is ready.",
+        "use": "Động từ: harvest carrots. Danh từ: a good harvest.",
+        "example": "We harvest carrots in autumn.",
+        "translation": "Chúng tôi thu hoạch cà rốt vào mùa thu."
+      },
+      {
+        "word": "moisture",
+        "ipa": "/ˈmɔɪstʃə(r)/",
+        "stress": "2 âm tiết: MOIS-ture; nhấn âm 1",
+        "vi": "độ ẩm; hơi ẩm",
+        "explanation": "A small amount of water in something.",
+        "use": "Danh từ không đếm được: retain moisture = giữ ẩm.",
+        "example": "Mulch helps the soil retain moisture.",
+        "translation": "Lớp phủ giúp đất giữ ẩm."
+      },
+      {
+        "word": "delivery",
+        "ipa": "/dɪˈlɪvəri/",
+        "stress": "4 âm tiết: de-LIV-er-y; nhấn âm 2",
+        "vi": "việc giao hàng",
+        "explanation": "The act of taking goods to a customer.",
+        "use": "Danh từ: a delivery, free delivery; động từ liên quan: deliver.",
+        "example": "The delivery arrives on Friday.",
+        "translation": "Hàng được giao đến vào thứ Sáu."
+      }
+    ],
+    "hard": [
+      {
+        "word": "contingency",
+        "ipa": "/kənˈtɪndʒənsi/",
+        "stress": "4 âm tiết: con-TIN-gen-cy; nhấn âm 2",
+        "vi": "tình huống có thể xảy ra cần dự phòng",
+        "explanation": "A possible future event for which a backup plan may be needed.",
+        "use": "Danh từ: a contingency plan = kế hoạch dự phòng.",
+        "example": "We need a contingency plan for flooding.",
+        "translation": "Chúng ta cần kế hoạch dự phòng cho ngập lụt."
+      },
+      {
+        "word": "sustainable",
+        "ipa": "/səˈsteɪnəbl/",
+        "stress": "4 âm tiết: sus-TAIN-a-ble; nhấn âm 2",
+        "vi": "bền vững",
+        "explanation": "Able to continue over time without exhausting resources.",
+        "use": "Tính từ đứng trước danh từ: sustainable farming.",
+        "example": "Crop rotation supports sustainable farming.",
+        "translation": "Luân canh hỗ trợ canh tác bền vững."
+      },
+      {
+        "word": "viability",
+        "ipa": "/ˌvaɪəˈbɪləti/",
+        "stress": "5 âm tiết: vi-a-BIL-i-ty; nhấn chính âm 3",
+        "vi": "tính khả thi; khả năng tồn tại",
+        "explanation": "The ability of a plan or project to work successfully.",
+        "use": "Danh từ không đếm được: assess the viability of a plan.",
+        "example": "The team assessed the plan’s viability.",
+        "translation": "Nhóm đã đánh giá tính khả thi của kế hoạch."
+      }
+    ]
+  },
+  "grammar": {
+    "easy": {
+      "title": "Present simple — Hiện tại đơn",
+      "form": "I/You/We/They + verb. He/She/It + verb-s/es. Phủ định: do not / does not + động từ nguyên mẫu.",
+      "meaning": "Diễn tả thói quen, việc lặp lại hoặc sự thật.",
+      "use": "Dùng với every day, usually, often. Momo là một nhân vật số ít, nên dùng checks/waters.",
+      "examples": [
+        "Momo checks the garden every day. — Momo kiểm tra vườn mỗi ngày.",
+        "They water the plants. — Họ tưới cây.",
+        "Momo does not water the road. — Momo không tưới đường."
+      ],
+      "questions": [
+        [
+          "Momo ___ the garden every day.",
+          [
+            "checks",
+            "check",
+            "checking"
+          ],
+          "checks"
+        ],
+        [
+          "They ___ the plants in the morning.",
+          [
+            "water",
+            "waters",
+            "watering"
+          ],
+          "water"
+        ],
+        [
+          "Momo does not ___ the road.",
+          [
+            "water",
+            "waters",
+            "watered"
+          ],
+          "water"
+        ]
+      ]
+    },
+    "normal": {
+      "title": "First conditional — Điều kiện loại 1",
+      "form": "If + subject + present simple, subject + will + base verb.",
+      "meaning": "Diễn tả điều có thể xảy ra trong tương lai và kết quả của nó.",
+      "use": "Dùng để lập kế hoạch, dự đoán và đưa ra phương án. Không dùng will ngay sau if trong cấu trúc này.",
+      "examples": [
+        "If it rains, we will move the crates inside. — Nếu trời mưa, chúng tôi sẽ chuyển thùng vào trong.",
+        "If Tom comes early, I will help him. — Nếu Tom đến sớm, tôi sẽ giúp anh ấy."
+      ],
+      "questions": [
+        [
+          "If it rains, we ___ the crates inside.",
+          [
+            "will move",
+            "moved",
+            "moving"
+          ],
+          "will move"
+        ],
+        [
+          "If Tom ___ early, I will help him.",
+          [
+            "comes",
+            "will come",
+            "came"
+          ],
+          "comes"
+        ],
+        [
+          "If the soil is dry, Momo ___ it.",
+          [
+            "will water",
+            "watered",
+            "watering"
+          ],
+          "will water"
+        ]
+      ]
+    },
+    "hard": {
+      "title": "Inverted third conditional — Đảo ngữ điều kiện loại 3",
+      "form": "Had + subject + past participle, subject + would have + past participle.",
+      "meaning": "Giả định một điều đã không xảy ra trong quá khứ và kết quả khác của nó.",
+      "use": "Dùng trong văn viết trang trọng để xem xét nguyên nhân hoặc kế hoạch đã bỏ lỡ. Had we known = If we had known.",
+      "examples": [
+        "Had we anticipated the drought, we would have planted fewer seeds. — Nếu dự đoán được hạn hán, chúng ta đã gieo ít hạt hơn.",
+        "Had Mia called, we would have delayed the delivery. — Nếu Mia đã gọi, chúng ta đã hoãn giao hàng."
+      ],
+      "questions": [
+        [
+          "Had we anticipated the drought, we ___ fewer seeds.",
+          [
+            "would have planted",
+            "will plant",
+            "would plant"
+          ],
+          "would have planted"
+        ],
+        [
+          "___ Mia called, we would have delayed the delivery.",
+          [
+            "Had",
+            "Has",
+            "Did"
+          ],
+          "Had"
+        ],
+        [
+          "Had we known, we would have ___ a backup plan.",
+          [
+            "made",
+            "make",
+            "making"
+          ],
+          "made"
+        ]
+      ]
+    }
+  },
+  "places": [
+    [
+      "Farm",
+      "/fɑːm/",
+      "nông trại",
+      "Momo’s home and garden.",
+      "Nhà và vườn của Momo."
+    ],
+    [
+      "Library",
+      "/ˈlaɪbrəri/",
+      "thư viện",
+      "A place to read and borrow books.",
+      "Lily giúp Momo học ở đây."
+    ],
+    [
+      "Market",
+      "/ˈmɑːkɪt/",
+      "chợ",
+      "A place to buy and sell goods.",
+      "Mia nhận nông sản và giao nhiệm vụ."
+    ],
+    [
+      "Post office",
+      "/ˈpəʊst ˌɒfɪs/",
+      "bưu điện",
+      "A place to send letters and parcels.",
+      "Emma giúp Momo viết và gửi thư."
+    ],
+    [
+      "Workshop",
+      "/ˈwɜːkʃɒp/",
+      "xưởng",
+      "A place where things are made or repaired.",
+      "Ben sửa nhà và làm công cụ."
+    ],
+    [
+      "Bank",
+      "/bæŋk/",
+      "ngân hàng",
+      "A place to keep and manage money.",
+      "Clara giữ Word Cards cho Momo, không tính lãi."
+    ],
+    [
+      "Pier",
+      "/pɪə(r)/",
+      "cầu tàu; bến",
+      "A structure over water where people can fish.",
+      "Noah dạy Momo câu cá."
+    ],
+    [
+      "Orchard",
+      "/ˈɔːtʃəd/",
+      "vườn cây ăn quả",
+      "Land where fruit trees grow.",
+      "Mở rộng ở cấp 4."
+    ]
+  ],
+  "reading": {
+    "title": "Read with a purpose — Đọc có mục đích",
+    "steps": [
+      "1. Đọc câu hỏi trước: cần tìm ai, cái gì, khi nào, ở đâu hay bao nhiêu?",
+      "2. Đọc lướt đoạn văn để biết chủ đề. Không cần dịch từng từ.",
+      "3. Tìm từ khóa và đọc kỹ câu chứa thông tin.",
+      "4. Trả lời ngắn đúng ý; kiểm tra lại tên, ngày và số lượng."
+    ],
+    "example": "Question: How many seeds? Text: The bag contains three seeds. Answer: three.",
+    "strategy": "who = ai • what = cái gì • when = khi nào • where = ở đâu • how many = bao nhiêu"
+  },
+  "writing": {
+    "title": "Write a helpful reply — Viết thư trả lời",
+    "steps": [
+      "1. Greeting: Dear Mia, / Hi Tom,",
+      "2. Nêu mục đích: Thank you for your order.",
+      "3. Trả lời đủ yêu cầu: sản phẩm, số lượng, thời gian; thêm lý do hoặc phương án nếu cần.",
+      "4. Closing: Best wishes, Momo.",
+      "5. Đọc lại: đủ ý chưa? Động từ, chính tả, dấu câu có hợp lý không?"
+    ],
+    "example": "Dear Mia,\nThank you for your order. I can bring three carrots tomorrow morning. Please meet me at the market.\nBest wishes,\nMomo",
+    "note": "Bài mẫu minh họa cấu trúc. Hãy viết lời của bạn. Bản này dùng checklist tự kiểm tra, chưa chấm AI."
+  }
+}
