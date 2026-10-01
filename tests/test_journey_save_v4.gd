@@ -9,6 +9,8 @@ func _initialize()->void:
 
 func run()->void:
  Saves.remove_all_v4()
+ if FileAccess.file_exists(Saves.MIGRATION_MARKER):
+  DirAccess.remove_absolute(ProjectSettings.globalize_path(Saves.MIGRATION_MARKER))
  var s=State.new()
  assert(s.choose_difficulty("normal"))
  s.onboarded=true
@@ -16,6 +18,7 @@ func run()->void:
  s.cards=17
  s.powers=3
  s.letter_draft="Dear Emma, this draft must survive a save round trip."
+ s.record_letter("First sent letter",123400)
  var ctx={
   "world_player_position":Vector2(900,1200),
   "current_room":"emma",
@@ -30,6 +33,8 @@ func run()->void:
  assert(t.cards==17 and t.powers==3)
  assert(t.onboarded and t.tutorial_index==5)
  assert(t.letter_draft==s.letter_draft)
+ assert(t.letter_history.size()==1)
+ assert(str(t.letter_history[0].text)=="First sent letter")
  assert(str(loaded.context.current_room)=="emma")
  assert(Saves.json_to_vec(loaded.context.room_player_position)==Vector2(620,490))
 
@@ -59,6 +64,15 @@ func run()->void:
  var rejected:=Saves.load_slot_state(3,State)
  assert(not bool(rejected.get("ok",false)))
 
+ # Portable export/import validates the same envelope before replacing live state.
+ var export_path:="user://test_englishfarm_export.json"
+ assert(Saves.export_current(export_path,s.to_dict(),ctx,123500))
+ var imported:=Saves.import_state(export_path,State)
+ assert(bool(imported.get("ok",false)))
+ assert(imported.state.cards==77)
+ assert(str(imported.context.current_room)=="emma")
+ Store.remove_save_family(export_path)
+
  # V3 migration keeps the original and creates a verified V4 autosave.
  var legacy_path:="user://test_journey_v3_migration.json"
  var legacy=State.new()
@@ -73,8 +87,15 @@ func run()->void:
  assert(FileAccess.file_exists(legacy_path))
  assert(migrated.state.cards==31 and migrated.state.difficulty=="hard")
  assert(migrated.state.letter_draft=="Legacy letter")
+ assert(FileAccess.file_exists(Saves.MIGRATION_MARKER))
+ Saves.remove_autosave()
+ var repeated:=Saves.migrate_v3(legacy_path,State)
+ assert(not bool(repeated.get("ok",false)))
+ assert(str(repeated.get("error",""))=="already_migrated")
 
  Store.remove_save_family(legacy_path)
  Saves.remove_all_v4()
+ if FileAccess.file_exists(Saves.MIGRATION_MARKER):
+  DirAccess.remove_absolute(ProjectSettings.globalize_path(Saves.MIGRATION_MARKER))
  print("JOURNEY_SAVE_V4_PASSED")
  quit()
