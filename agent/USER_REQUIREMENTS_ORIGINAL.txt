@@ -1,0 +1,156 @@
+[$remotion](app://plugins~Plugin_efd07789186881918253a50acfc32762) [$pixelixe](app://asdk_app_69de42bea5608191a000f5b296b53668) [$debug](app://plugins_6aa30969a11081918744c9ca04e16d35) [$alpix](app://asdk_app_6a0dcc1413f88191ba2dd68c73cb841e) Bạn là kỹ sư trưởng dự án EnglishFarm Journey, Godot 4.3 + GDScript. Nhiệm vụ: thực hiện toàn bộ công việc theo trình tự dưới đây — SỬA LỖI trước → NÂNG CẤP sau → KIỂM TRA cuối.
+
+=== THÔNG TIN DỰ ÁN ===
+- [$github](app://connector_76869538009648d5b282a4bb21c3d157) Repo: https://github.com/ttnnhoavietmythanhhoatayninh-arch/EnghlishFarm_V1 (Cập nhật tất cả lên repo này)
+- Scene chính: res://game/scenes/Journey.tscn
+- Độ phân giải: 1280×720
+- Dữ liệu cũ: user://englishfarm_journey_v3.json — KHÔNG bao giờ xóa hay hỏng định dạng khi chuyển đổi
+- Nhánh làm việc: tạo nhánh mới, không đè nhánh main cho đến khi kiểm chứng hoàn toàn
+- Phong cách hình ảnh chuẩn: pixel ấm áp, sàn gạch sáng tối, tường xanh xám viền nâu, ánh nắng vàng từ bên phải, Momo mèo cam khăn xanh, nút be viền xanh lá tròn góc
+
+====================================================================
+== TRÌNH TỰ LÀM VIỆC — HOÀN THÀNH XONG MỖI BƯỚC KIỂM TRA RỒI TIẾP ==
+====================================================================
+
+===== BƯỚC 1 — SỬA LỖI NỀN TẢNG (Bắt buộc trước mọi thứ) =====
+
+--- 1.1 — Sửa lỗi thoát phòng bị kẹt ---
+File: journey_main.gd / journey_room.gd
+- Thêm hàm tìm điểm an toàn:
+func safe_walkable_near(pt: Vector2) -> Vector2:
+    # Tìm điểm gần nhất trong bán kính 5/15/30/50 mà is_walkable = true
+    # Trả về điểm gốc + cảnh báo nếu không tìm thấy
+- Thêm hàm kiểm tra hướng ra:
+func has_walkable_step(from: Vector2, toward: Vector2) -> bool:
+    # Kiểm tra có bước đi hợp lệ ra hướng cửa không
+- Cập nhật leave_room():
+  • Tính exit_pt = n.door * 2 + Vector2(0, 110)
+  • exit_pt = safe_walkable_near(exit_pt)
+  • Kiểm tra has_walkable_step() trước khi di chuyển
+  • Đặt player.position = exit_pt
+- Sửa tọa độ cửa Mia: dời ra khỏi sạp hàng → vùng đi được
+- Sửa nút "← Ra ngoài": đặt y=540, không đè thanh công cụ; bỏ mũi tên nếu lỗi hiển thị
+
+--- 1.2 — Chặn đi xuyên vật cản ---
+File: town_navigation.gd
+- Thêm danh sách vùng cấm đi:
+const OBSTACLES := [
+    Rect2(900, 380, 160, 220),  # Bưu điện
+    # Thêm: hàng rào, nhà, sạp, bụi cây, vùng nước — tính tọa độ theo bản đồ
+]
+- is_walkable(point): nếu nằm trong bất kỳ OBSTACLES nào → return false
+- (Đề xuất) Tạo walkmask.png 1536×1024: trắng=đi được, đen=cấm; nạp và kiểm tra trong is_walkable()
+
+--- 1.3 — Sửa kiểm thử báo sai ---
+- Tất cả tests/*.gd: khi có lỗi in "FAIL: lý do" + trả về exit code != 0
+- Kết thúc test in "TÊN_TEST PASSED" CHỈ khi thực sự không có lỗi
+- Script chạy tất cả test: dừng ngay khi gặp lỗi
+
+--- ✅ KIỂM TRA BƯỚC 1 ---
+godot --headless --path . --script tests/test_journey_rooms.gd
+→ Tất cả 8 phòng vào/ra mượt mà, Momo đứng tại vị trí đi được
+godot --headless --path . --script tests/test_journey_layout.gd
+→ Không chặn đường đến Noah cấp 3
+godot --headless --path . --script tests/test_journey_spacing.gd
+→ Không còn chữ dính số
+
+===== BƯỚC 2 — TÍCH HỢP PHÒNG MỚI PHONG CÁCH V4 =====
+
+Ánh xạ hình ảnh → phòng:
+Rooms/01-home.png         → home    Nhà chính
+Rooms/02-library.png      → lily    Thư viện
+Rooms/03-post-office.png  → emma    Bưu điện
+Rooms/04-workshop.png     → ben     Xưởng
+Rooms/05-bank.png         → clara   Ngân hàng
+Rooms/06-garden-shed.png  → tom     Nhà vườn
+Rooms/07-pier-hut.png     → noah    Bến tàu
+* Giữ Mia (Chợ) hoạt động, chỉnh phong cách cho khớp V4
+
+Quy tắc dựng phòng:
+- Tách lớp: nền nội thất cố định + sprite Momo/NPC động riêng + vùng tương tác
+- Không chồng sprite cũ lên ảnh nền
+- Tỷ lệ 1920×1080 → 1280×720 = nhân 2/3; tọa độ nhất quán
+- Vùng tương tác khớp đồ vật: [E] + hành động tương ứng
+- Không đi xuyên bàn/tủ; đường đến cửa luôn thông thoáng
+- NPC có tên hiển thị trên đầu, không đè nội thất
+- Giữ khóa phòng: Lily mở cấp 2, không mở ngay cấp 1
+- Thanh dưới cố định: Farm | Letters | Settings | Tasks | Map | ? Help — 6 nút, trạng thái hover/pressed/disabled
+
+Nội thất & chức năng từng phòng:
+• Nhà chính: giường gối hồng, bàn học → Learn, tủ → Cửa hàng
+• Thư viện: kệ → Từ vựng, bàn → Đọc, bảng → Địa điểm
+• Bưu điện: hòm thư → Gửi thư, bàn → Bài mẫu
+• Xưởng: gỗ + dụng cụ → Sửa nhà / Nâng cấp
+• Ngân hàng: quầy → Gửi/Rút, két sắt → Xem số dư
+• Nhà vườn: hạt + chậu → Mở Farm, dụng cụ → Hướng dẫn
+• Bến tàu: cần câu → Câu cá, thùng → Xem thưởng
+
+===== BƯỚC 3 — THAY TOÀN BỘ HƯỚNG DẪN =====
+
+10 trang đúng thứ tự:
+00-start               → Chọn độ khó: Dễ / Bình thường / Khó
+01-move               → Di chuyển & nói chuyện
+02-learn              → Học từ vựng
+03-seeds              → Nhận hạt & Làm bài đọc
+04-farm               → Gieo → Tưới → Thu hoạch
+05-tasks              → 3 Nhiệm vụ cấp 1
+06-rewards            → Cards & Năng lượng
+07-delivery-letters   → Giao hàng & Gửi thư
+08-places             → Địa điểm & Mở khóa
+09-help               → Phím tắt & Trợ giúp
+
+Yêu cầu:
+- Đọc nội dung từ guide-copy.json; hiển thị ảnh tương ứng mỗi trang
+- Nút: Trước | Tiếp; Bỏ qua; × đóng; Trang cuối → "Bắt đầu chơi"
+- Lưu trạng thái: difficulty_chosen, tutorial_index, onboarded
+- Bỏ qua ≠ hoàn thành: chỉ đánh dấu, không tặng thưởng
+- F1 / ? Help → mở lại đúng trang đang xem, không reset
+- Khóa thao tác game bên dưới khi hướng dẫn mở
+- Font tiếng Việt hiển thị đúng, không cắt chữ
+
+===== BƯỚC 4 — NÂNG CẤP HỆ THỐNG LƯU/TẢI & DI CHUYỂN DỮ LIỆU =====
+
+--- 4.1 — Cấu trúc lưu mới ---
+Thư mục: user://saves/englishfarm_v4/
+→ autosave.json + slot_1.json + slot_2.json + slot_3.json
+Mỗi bản có: schema_version, save_id, slot_id, saved_at, difficulty, vị trí, cấp, toàn bộ dữ liệu
+
+Menu chính: Tiếp tục | Game mới | Tải game | Cài đặt | Thoát
+Trong game: Lưu nhanh | Lưu ô 1-3 | Tải ô | Nhập/Xuất JSON | Xóa ô
+
+--- 4.2 — An toàn & tự lưu ---
+- Ghi .tmp → kiểm tra → đổi tên; giữ .bak bản trước
+- Tự lưu: sau gieo/tưới/thu hoạch/lên cấp/vào-ra phòng; định kỳ 30s nếu có thay đổi
+- Không tạo lưu trống khi lỗi → giữ phiên hiện tại, báo lỗi rõ
+
+--- 4.3 — Di chuyển V3 → V4 ---
+- Nhận dạng: version=1 / journey_version=1
+- Tạo bản sao lưu trước chuyển đổi
+- Giữ nguyên: cấp, cây, hạt, cà rốt, gỗ, tiến trình học, thư, ngân hàng
+- Tính lại thời gian phát triển cây cho đúng chế độ nhanh/thực, không làm cây héo đột ngột
+- Đơn hàng đang giao: tính tiếp, không tặng thưởng lại
+- Thêm mặc định mới: tutorial_index=0, vị trí ngoài nhà
+
+===== BƯỚC 5 — KIỂM TRA TOÀN DIỆN & BÀN GIAO =====
+
+Chạy tất cả lệnh:
+godot --headless --path . --script tests/test_journey*.gd
+godot --headless --path . --script tests/test_town*.gd
+
+Kiểm tra thủ công:
+[ ] Vào/ra 8 phòng — đúng nội thất, đi lại được, E tương tác, Esc ra đúng vị trí
+[ ] Hướng dẫn — xem hết → Bỏ qua → Help xem lại đúng tiến trình
+[ ] Lưu trong phòng → tắt mở → trở lại đúng phòng đúng vị trí
+[ ] Tải dữ liệu V3 cũ → giữ hết, chơi tiếp bình thường
+[ ] Tải file lỗi/sai định dạng → báo lỗi, không crash, không mất phiên
+[ ] Game mới → không xóa ô lưu khác
+
+=== YÊU CẦU TRẢ VỀ ===
+Thực hiện từng bước, trả về:
+1. Mã đầy đủ từng hàm đã sửa/thêm
+2. Giải thích ngắn gọn thay đổi chính
+3. Kết quả chạy tất cả lệnh kiểm tra
+4. Hướng dẫn tạo walkmask.png nếu áp dụng
+5. Tóm tắt những gì đã làm xong → chuyển bước tiếp theo
+
+Bắt đầu với BƯỚC 1 nhé.
