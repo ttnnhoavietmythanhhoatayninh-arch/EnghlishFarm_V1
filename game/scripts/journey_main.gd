@@ -31,7 +31,12 @@ var toast_timer:=0.0
 var ui:Control
 var layer:CanvasLayer
 var interior:Node2D
+var room_layer:CanvasLayer
 var room_ui:Control
+var room_hint:Label
+var room_target:=Vector2.ZERO
+var room_has_target:=false
+var command_buttons:Array[Button]=[]
 var current_room:=""
 var writing:TextEdit
 var quiz_kind:=""
@@ -109,7 +114,7 @@ func build_ui()->void:
   b.pressed.connect(func():
    if state.onboarded:action.call()
    else:notify("Hãy chọn độ khó và đọc hướng dẫn trước khi chơi."))
-  ui.add_child(b)
+  ui.add_child(b);command_buttons.append(b)
  hint=Label.new();hint.position=Vector2(20,105);hint.add_theme_font_size_override("font_size",17);ui.add_child(hint)
  toast=Label.new();toast.position=Vector2(470,24);toast.custom_minimum_size=Vector2(620,48);toast.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
  toast.add_theme_stylebox_override("normal",Style.box("fff0c9"));ui.add_child(toast);toast.hide()
@@ -134,11 +139,13 @@ func build_ui()->void:
  body=VBoxContainer.new();body.custom_minimum_size.x=482;body.size_flags_horizontal=Control.SIZE_EXPAND_FILL;body.add_theme_constant_override("separation",10);scroll.add_child(body)
  feedback=Label.new();feedback.custom_minimum_size=Vector2(480,46);feedback.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART;outer.add_child(feedback)
  dialog.hide()
- var room_layer:=CanvasLayer.new();room_layer.layer=-1;add_child(room_layer)
+ room_layer=CanvasLayer.new();room_layer.layer=-1;add_child(room_layer)
  # Room is placed on layer 2, UI on layer 3 so dialogs stay visible.
  room_layer.layer=2;layer.layer=3
  interior=Room.new();room_layer.add_child(interior);interior.hide()
- room_ui=Control.new();room_ui.theme=ui.theme;room_ui.mouse_filter=Control.MOUSE_FILTER_IGNORE;room_layer.add_child(room_ui);room_ui.hide()
+ room_ui=Control.new();room_ui.theme=ui.theme;room_ui.mouse_filter=Control.MOUSE_FILTER_IGNORE;room_ui.z_index=30;room_layer.add_child(room_ui);room_ui.hide()
+ room_hint=Label.new();room_hint.position=Vector2(480,505);room_hint.custom_minimum_size=Vector2(320,42);room_hint.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
+ room_hint.add_theme_stylebox_override("normal",Style.box("fff0c9","738b53",10));room_ui.add_child(room_hint)
 func make_button(parent:Node,text:String,action:Callable,height:int=42)->Button:
  var b:=Button.new();b.text=text;b.custom_minimum_size.y=height;b.pressed.connect(action);parent.add_child(b);return b
 func line(text:String,size:int=18)->Label:
@@ -186,9 +193,12 @@ func changed()->void:
  if quest_level!=state.level:
   quest_level=state.level
   show_unlock_notice(state.level)
+
 func _process(delta:float)->void:
  elapsed+=delta
  player.locked=not state.onboarded or dialog.visible or interior.visible or state.delivery_active
+ if interior.visible and not dialog.visible:
+  process_room_movement(delta)
  player.z_index=int(player.position.y)
  if toast_timer>0:
   toast_timer-=delta
@@ -212,9 +222,11 @@ func _process(delta:float)->void:
  refresh_clock+=delta
  if refresh_clock>0.4:
   refresh_clock=0;refresh_crops();minimap.queue_redraw()
-  var nearby:=nearest_npc()
-  hint.text="[E] "+str(nearby.name)+" • "+str(nearby.role) if not nearby.is_empty() else "WASD / mũi tên: đi • nhấp NPC: đến nói chuyện • ?: hướng dẫn"
+  if not interior.visible:
+   var nearby:=nearest_npc()
+   hint.text="[E] "+str(nearby.name)+" • "+str(nearby.role) if not nearby.is_empty() else "WASD / mũi tên: đi • nhấp NPC: đến nói chuyện • ?: hướng dẫn"
  if elapsed>=10800 and elapsed-delta<10800:notify("Bạn đã chơi 180 phút. Hãy nghỉ, vận động và thư giãn mắt.")
+
 func _unhandled_input(event:InputEvent)->void:
  if event is InputEventKey and event.pressed and not event.echo:
   if event.keycode==KEY_ESCAPE:
@@ -224,12 +236,33 @@ func _unhandled_input(event:InputEvent)->void:
   var focus:=get_viewport().gui_get_focus_owner()
   if focus is LineEdit or focus is TextEdit:return
   if event.keycode==KEY_F1:show_guide(0);return
-  if event.keycode==KEY_M:toggle_map();return
-  if event.keycode==KEY_E and not dialog.visible and not interior.visible:
-   var n:=nearest_npc()
-   if not n.is_empty():interact_npc(n.id)
+  if event.keycode==KEY_M:
+   if interior.visible:notify("Hãy ra ngoài để mở bản đồ.")
+   else:toggle_map()
    return
- if not state.onboarded or dialog.visible or interior.visible or state.delivery_active:return
+  if event.keycode==KEY_E and not dialog.visible:
+   if interior.visible:
+    room_interact()
+   else:
+    var n:=nearest_npc()
+    if not n.is_empty():interact_npc(n.id)
+   return
+ if interior.visible and not dialog.visible:
+  if event is InputEventMouseButton and event.pressed and event.button_index==MOUSE_BUTTON_LEFT:
+   var point:Vector2=event.position
+   var data:Dictionary=interior.room_data(current_room)
+   if Rect2(data.exit_zone).has_point(point):
+    leave_room()
+    return
+   for obj in data.objects:
+    if Rect2(obj.rect).grow(12).has_point(point):
+     room_action(str(obj.action))
+     return
+   if Rect2(data.floor_rect).has_point(point):
+    room_target=point
+    room_has_target=true
+  return
+ if not state.onboarded or dialog.visible or state.delivery_active:return
  if event is InputEventMouseButton and event.pressed:
   if event.button_index in [MOUSE_BUTTON_WHEEL_UP,MOUSE_BUTTON_WHEEL_DOWN]:
    var camera:Camera2D=player.get_node("Camera2D");camera.zoom=Vector2.ONE*clampf(camera.zoom.x+(0.1 if event.button_index==MOUSE_BUTTON_WHEEL_UP else -0.1),0.6,1.4)
@@ -242,7 +275,11 @@ func _unhandled_input(event:InputEvent)->void:
    if nav.allowed(target):player.walk_to(target)
    else:notify("Khu vực chưa mở. Xem Tasks để lên cấp.")
 func toggle_map()->void:
- if state.onboarded:map_panel.visible=not map_panel.visible
+ if not state.onboarded:return
+ if interior.visible:
+  notify("Hãy ra ngoài để mở bản đồ.")
+  return
+ map_panel.visible=not map_panel.visible
 func show_difficulty()->void:
  open_dialog("difficulty","Welcome, Momo!");dialog.position=Vector2(370,100);close_button.disabled=true
  line("Chọn mức tiếng Anh trước khi bắt đầu. Đây là hồ sơ ngoại tuyến trên máy, không cần tài khoản.")
@@ -564,6 +601,7 @@ func interact_npc(id:String)->void:
  if not interior.visible and id not in ["tom","noah"] and not (id=="lily" and state.level<2):
   make_button(body,"Vào "+str(n.place).split(" — ")[0],func():enter_room(id))
 
+
 func enter_room(id:String)->void:
  pending_npc=""
  pending_door=""
@@ -581,31 +619,34 @@ func enter_room(id:String)->void:
  interior.queue_redraw()
  interior.show()
  room_ui.show()
- tip_once("room","Nhấn Esc để ra ngoài.")
- for c in room_ui.get_children():c.queue_free()
+ room_has_target=false
+ map_panel.hide()
+ hint.hide()
+ for b in command_buttons:
+  b.visible=b.text in ["Learn","Tasks","? Help"]
+ for c in room_ui.get_children():
+  if c!=room_hint:c.queue_free()
+ room_hint.show()
+ var data:Dictionary=interior.room_data(id)
  var heading:=Label.new()
- heading.text=n.place+"  •  "+n.relation
- heading.position=Vector2(220,96)
+ heading.text=str(data.title)
+ heading.position=Vector2(470,105)
+ heading.custom_minimum_size=Vector2(340,46)
+ heading.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
+ heading.add_theme_font_size_override("font_size",24)
+ heading.add_theme_stylebox_override("normal",Style.box("fff6df","8b6d4b",10))
  room_ui.add_child(heading)
- var leave:=make_button(room_ui,"← Ra ngoài (Esc)",leave_room,52)
- leave.position=Vector2(24,96)
- leave.size=Vector2(180,52)
- var avatar=art.sprite("momo",0,70)
- avatar.position=Vector2(645,548)
- room_ui.add_child(avatar)
- var actions:Array=[]
- match id:
-  "home":actions=[["Bàn học • Learn",open_learning],["Viết thư ở bàn",show_writing],["Tủ đồ / nâng cấp",show_shop]]
-  "lily":actions=[["Mở sách từ vựng",func():show_vocabulary(0)],["Đọc sách cùng Lily",show_reading]]
-  "mia":actions=[["Quầy đơn hàng",func():interact_npc("mia")],["Mua vật phẩm",show_shop]]
-  "emma":actions=[["Bàn viết thư",show_writing_lesson],["Soạn thư của bạn",show_writing]]
-  "ben":actions=[["Bàn thợ mộc",func():interact_npc("ben")]]
-  "clara":actions=[["Quầy gửi / rút",show_bank]]
-  _:actions=[["Trò chuyện",func():interact_npc(id)]]
- for i in range(actions.size()):
-  var b:=make_button(room_ui,actions[i][0],actions[i][1])
-  b.position=Vector2(290+i*240,300)
-  b.size=Vector2(220,55)
+ var leave:=make_button(room_ui,"← Ra ngoài (Esc)",leave_room,50)
+ leave.position=Vector2(535,565)
+ leave.size=Vector2(210,50)
+ if player.get_parent()!=room_layer:
+  player.reparent(room_layer)
+ var camera:Camera2D=player.get_node("Camera2D")
+ camera.enabled=false
+ player.position=Vector2(640,500)
+ player.show()
+ tip_once("room","Nhấn Esc để ra ngoài.")
+ update_room_hint()
 
 func leave_room()->void:
  var room_id:=current_room
@@ -618,10 +659,85 @@ func leave_room()->void:
  pending_npc=""
  pending_door=""
  fishing_running=false
+ room_has_target=false
+ if player.get_parent()!=self:
+  player.reparent(self)
+ var camera:Camera2D=player.get_node("Camera2D")
+ camera.enabled=true
  player.stop()
  if not n.is_empty():
   player.position=n.door*2+Vector2(0,110)
+ hint.show()
+ for b in command_buttons:b.show()
  get_viewport().gui_release_focus()
+
+func process_room_movement(delta:float)->void:
+ if current_room.is_empty():return
+ var data:Dictionary=interior.room_data(current_room)
+ var floor:Rect2=data.floor_rect
+ var move:=Input.get_vector("move_left","move_right","move_up","move_down")
+ var motion:=Vector2.ZERO
+ if move.length_squared()>0.01:
+  room_has_target=false
+  motion=move.normalized()*260.0*minf(delta,0.05)
+ elif room_has_target:
+  var distance:=player.position.distance_to(room_target)
+  if distance<5:
+   room_has_target=false
+  else:
+   motion=player.position.direction_to(room_target)*minf(260.0*minf(delta,0.05),distance)
+ if motion!=Vector2.ZERO:
+  var next:=player.position+motion
+  next.x=clampf(next.x,floor.position.x+24,floor.end.x-24)
+  next.y=clampf(next.y,floor.position.y+24,floor.end.y-24)
+  player.position=next
+ update_room_hint()
+
+func nearest_room_object()->Dictionary:
+ if current_room.is_empty():return {}
+ var data:Dictionary=interior.room_data(current_room)
+ var best:Dictionary={}
+ var best_distance:=100.0
+ for obj in data.objects:
+  var d:=player.position.distance_to(Rect2(obj.rect).get_center())
+  if d<best_distance:
+   best_distance=d
+   best=obj
+ return best
+
+func update_room_hint()->void:
+ if not interior.visible:return
+ var data:Dictionary=interior.room_data(current_room)
+ if Rect2(data.exit_zone).grow(35).has_point(player.position):
+  room_hint.text="[E] Ra ngoài"
+  return
+ var obj:=nearest_room_object()
+ room_hint.text="[E] "+str(obj.label) if not obj.is_empty() else "WASD / mũi tên hoặc bấm sàn để di chuyển"
+
+func room_interact()->void:
+ if current_room.is_empty():return
+ var data:Dictionary=interior.room_data(current_room)
+ if Rect2(data.exit_zone).grow(35).has_point(player.position):
+  leave_room()
+  return
+ var obj:=nearest_room_object()
+ if not obj.is_empty():room_action(str(obj.action))
+
+func room_action(action:String)->void:
+ room_has_target=false
+ match action:
+  "learn":open_learning()
+  "writing":show_writing()
+  "shop":show_shop()
+  "vocabulary":show_vocabulary(0)
+  "reading":show_reading()
+  "places":show_places()
+  "mia_order":interact_npc("mia")
+  "writing_lesson":show_writing_lesson()
+  "repair":interact_npc("ben")
+  "bank":show_bank()
+  "farm":show_farm()
+  "fishing":show_fishing()
 func show_bank()->void:
  if state.level<3:notify("Ngân hàng mở ở cấp 3.");return
  open_dialog("bank","Bank • Sổ tiết kiệm")
