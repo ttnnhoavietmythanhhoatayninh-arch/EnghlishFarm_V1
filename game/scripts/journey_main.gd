@@ -503,8 +503,8 @@ func show_writing()->void:
  make_button(body,"Xem cấu trúc và bài mẫu",show_writing_lesson)
 func show_farm()->void:
  open_dialog("farm","Farm • Khu vườn nhỏ")
- line("Hạt: %d | Cà rốt: %d\nPlant = gieo • Water = tưới • Harvest = thu hoạch"%[state.seeds,state.produce],17)
- line("Thử nhanh: lớn 20 giây; héo sau 60 giây không tưới." if state.demo_mode else "Thời gian thực: lớn 12 giờ; cần tưới trong 12 giờ.",16)
+ line("Hạt: %d | Cà rốt: %d\nPlant = Gieo hạt • Water = Tưới cây • Harvest = Thu hoạch"%[state.seeds,state.produce],17)
+ line("Chế độ nhanh: cây lớn sau 20 giây; héo nếu quá 60 giây không tưới." if state.demo_mode else "Thời gian thực: cây lớn sau 12 giờ; héo nếu quá 12 giờ không tưới.",16)
  for i in range(6 if state.orchard_open else 3):
   var row:=HBoxContainer.new();body.add_child(row)
   var l:=Label.new();l.text="Ô%d • %s"%[i+1,state.crop_status(i,crop_time())];l.custom_minimum_size.x=165;row.add_child(l)
