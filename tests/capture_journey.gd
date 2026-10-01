@@ -19,9 +19,9 @@ func capture()->void:
  await shot("difficulty")
 
  g.select_difficulty("easy")
- for i in range(3):
+ for i in range(g.GUIDE_PAGES.size()):
   g.show_guide(i)
-  await shot("guide-"+str(i+1))
+  await shot("guide-"+str(i+1).pad_zeros(2))
  g.finish_guide()
  await shot("starter")
 

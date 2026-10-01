@@ -11,8 +11,16 @@ func run()->void:
  var g=load("res://game/scenes/Journey.tscn").instantiate();g.persistence_enabled=false;root.add_child(g)
  await process_frame
  await verify(g)
+ var reset_probe:=FileAccess.open(g.SAVE,FileAccess.WRITE)
+ assert(reset_probe!=null,"Reset probe save must be writable")
+ reset_probe.store_string("{\"probe\":true}")
+ reset_probe.close()
+ assert(FileAccess.file_exists(g.SAVE),"Reset probe file exists")
+ assert(g.erase_save_file(),"Reset must remove the save file")
+ assert(not FileAccess.file_exists(g.SAVE),"Save file must be gone after reset")
  g.select_difficulty("easy")
- for i in range(3):g.show_guide(i);await verify(g)
+ assert(g.GUIDE_PAGES.size()==9,"V4 guide must contain 9 steps")
+ for i in range(g.GUIDE_PAGES.size()):g.show_guide(i);await verify(g)
  g.finish_guide()
  for mode in ["easy","normal","hard"]:
   g.state.choose_difficulty(mode)
@@ -21,6 +29,11 @@ func run()->void:
   g.show_reading();await verify(g)
   g.show_writing_lesson();await verify(g)
  g.show_settings();await verify(g)
+ var reset_found:=false
+ for child in g.body.get_children():
+  if child is Button and "Xóa dữ liệu game" in child.text:reset_found=true
+ assert(reset_found,"Settings must expose Reset data button")
+ g.show_reset_confirm();await verify(g)
  g.show_farm();await verify(g)
  g.show_places();await verify(g)
  for level in [1,2,3,4]:
