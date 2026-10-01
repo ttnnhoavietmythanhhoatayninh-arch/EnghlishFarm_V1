@@ -166,6 +166,7 @@ func changed()->void:
  save_game();refresh_hud();update_world()
  if quest_level!=state.level:
   quest_level=state.level;notify("Lên cấp %d! +1 Power. Mở Tasks để xem khu vực và nhiệm vụ mới."%state.level)
+
 func _process(delta:float)->void:
  elapsed+=delta
  player.locked=not state.onboarded or dialog.visible or interior.visible or state.delivery_active
@@ -173,12 +174,18 @@ func _process(delta:float)->void:
  if toast_timer>0:
   toast_timer-=delta
   if toast_timer<=0:toast.hide()
- if pending_npc!="" and not dialog.visible:
-  var n:=npc_by_id(pending_npc)
-  if player.position.distance_to(n.at*2)<130:interact_npc(pending_npc)
- if pending_door!="" and not dialog.visible:
-  var n:=npc_by_id(pending_door)
-  if player.position.distance_to(n.door*2)<130:enter_room(pending_door)
+ if pending_npc!="" and not dialog.visible and not interior.visible:
+  var npc_id:=pending_npc
+  var n:=npc_by_id(npc_id)
+  if not n.is_empty() and player.position.distance_to(n.at*2)<130:
+   pending_npc=""
+   interact_npc(npc_id)
+ if pending_door!="" and not dialog.visible and not interior.visible:
+  var door_id:=pending_door
+  var n:=npc_by_id(door_id)
+  if not n.is_empty() and player.position.distance_to(n.door*2)<130:
+   pending_door=""
+   enter_room(door_id)
  if state.delivery_active:tick_delivery(delta)
  if fishing_running:
   fishing_elapsed+=delta;fishing_position=fmod(fishing_elapsed*0.45,1.0)
@@ -442,40 +449,80 @@ func nearest_npc()->Dictionary:
   var d:float=player.position.distance_to(n.at*2)
   if d<distance:distance=d;best=n
  return best
+
 func interact_npc(id:String)->void:
  var n:=npc_by_id(id)
  if n.is_empty():return
- if state.level<n.level:notify("%s mở ở cấp%d."%[n.place,n.level]);return
- if id=="home":enter_room(id);return
+ if state.level<n.level:
+  notify("%s mở ở cấp%d."%[n.place,n.level])
+  return
+ if id=="home":
+  pending_npc=""
+  enter_room(id)
+  return
  open_dialog("npc",n.name+" • "+str(n.role).split(" / ")[0])
- line(n.place,22);line(n.relation)
+ line(n.place,22)
+ line(n.relation)
  line("Tình bạn: %d"%int(state.friendship.get(id,0)),16)
  match id:
-  "lily":line("Mình sẽ giải thích kiến thức trước. Chọn chủ đề, học xong rồi thử sức nhé.");make_button(body,"Học cùng Lily",open_learning)
-  "tom":line("Nhận hạt từ bài đọc, gieo rồi tưới. Thu hoạch3 củ sẽ giúp bạn hoàn thành cấp1.");make_button(body,"Chăm khu vườn",show_farm)
+  "lily":
+   line("Học kiến thức trước, rồi thử sức khi đã sẵn sàng.")
+   make_button(body,"Học cùng Lily",open_learning)
+  "tom":
+   line("Nhận hạt, gieo, tưới rồi thu hoạch 3 củ cà rốt.")
+   make_button(body,"Chăm khu vườn",show_farm)
   "mia":
-   line("Mình cần3 củ cà rốt. Xe hàng sẽ chở từ nông trại tới chợ; khi đến nơi bạn nhận8 cards,5 gỗ và tình bạn.")
+   line("Mia cần 3 củ cà rốt. Giao đủ để nhận cards, gỗ và tình bạn.")
    make_button(body,"Nhận đơn hàng",func():
-    message("Đã nhận đơn! Chuẩn bị3 củ cà rốt." if state.accept_order() else "Đơn đã được nhận hoặc hoàn thành.");changed())
-   make_button(body,"Chất hàng lên xe • 3 cà rốt",begin_delivery)
-   if state.order_stage==2:make_button(body,"Xem cửa hàng mở rộng",show_shop)
-  "emma":line("Hãy học cách viết thư, rồi viết một lời nhắn đủ ý. Mình sẽ nhận thư của bạn.");make_button(body,"Học viết thư",show_writing_lesson)
+    message("Đã nhận đơn! Chuẩn bị 3 củ cà rốt." if state.accept_order() else "Đơn đã được nhận hoặc hoàn thành.")
+    changed())
+   make_button(body,"Chất hàng • 3 cà rốt",begin_delivery)
+  "emma":
+   line("Học cách viết thư, rồi soạn một lời nhắn ngắn và rõ ý.")
+   make_button(body,"Học viết thư",show_writing_lesson)
   "ben":
-   line("5 gỗ đổi một lần sửa nhà: căn lều thành nhà có mái đẹp và thêm tủ đồ. Gỗ nhận từ đơn của Mia.")
-   make_button(body,"Sửa nhà • 5 gỗ",func():var ok:bool=state.improve_home();changed();message("Nhà đã được nâng cấp! Về nhà để xem." if ok else "Cần5 gỗ hoặc bạn đã sửa nhà rồi.",ok))
-  "clara":line("Bạn có thể gửi và rút Word Cards. Không có lãi, phí hoặc tiền thật.");make_button(body,"Mở sổ tiết kiệm",show_bank)
-  "noah":line("Học3 từ: fish = cá; rod = cần câu; catch = bắt. Bấm Kéo khi kim nằm trong vùng40–70 để bắt cá.");make_button(body,"Thử câu cá",show_fishing)
- if id not in ["tom","noah"] and not (id=="lily" and state.level<2):make_button(body,"Vào "+str(n.place).split(" — ")[0],func():enter_room(id))
- make_button(body,"Học tên địa điểm",show_places)
+   line("Dùng 5 gỗ để sửa nhà. Gỗ nhận từ đơn hàng của Mia.")
+   make_button(body,"Sửa nhà • 5 gỗ",func():
+    var ok:bool=state.improve_home()
+    changed()
+    message("Nhà đã được nâng cấp!" if ok else "Cần 5 gỗ hoặc nhà đã được sửa.",ok))
+  "clara":
+   line("Gửi hoặc rút Word Cards trong sổ tiết kiệm của Momo.")
+   make_button(body,"Mở sổ tiết kiệm",show_bank)
+  "noah":
+   line("Thả câu rồi bấm Kéo khi kim nằm trong vùng 40–70.")
+   make_button(body,"Thử câu cá",show_fishing)
+ if not interior.visible and id not in ["tom","noah"] and not (id=="lily" and state.level<2):
+  make_button(body,"Vào "+str(n.place).split(" — ")[0],func():enter_room(id))
+
 func enter_room(id:String)->void:
+ pending_npc=""
+ pending_door=""
+ if interior.visible and current_room==id:return
  var n:=npc_by_id(id)
  if n.is_empty() or state.level<n.level:return
- if id=="lily" and state.level<2:notify("Thư viện mở cấp2. Lily đang đến nông trại dạy bạn.");return
- close_dialog();current_room=id;interior.kind=id;interior.upgraded=state.house_level>1;interior.queue_redraw();interior.show();room_ui.show()
+ if id=="lily" and state.level<2:
+  notify("Thư viện mở cấp 2. Lily đang đến nông trại dạy bạn.")
+  return
+ close_dialog()
+ player.stop()
+ current_room=id
+ interior.kind=id
+ interior.upgraded=state.house_level>1
+ interior.queue_redraw()
+ interior.show()
+ room_ui.show()
  for c in room_ui.get_children():c.queue_free()
- var heading:=Label.new();heading.text=n.place+"  •  "+n.relation;heading.position=Vector2(210,96);room_ui.add_child(heading)
- var leave:=make_button(room_ui,"← Ra ngoài",leave_room);leave.position=Vector2(575,584);leave.size=Vector2(130,45)
- var avatar=art.sprite("momo",0,70);avatar.position=Vector2(645,548);room_ui.add_child(avatar)
+ var heading:=Label.new()
+ heading.text=n.place+"  •  "+n.relation
+ heading.position=Vector2(220,96)
+ room_ui.add_child(heading)
+ var leave:=make_button(room_ui,"← Ra ngoài (Esc)",leave_room,52)
+ leave.position=Vector2(24,96)
+ leave.size=Vector2(180,52)
+ var avatar=art.sprite("momo",0,70)
+ avatar.position=Vector2(645,548)
+ room_ui.add_child(avatar)
  var actions:Array=[]
  match id:
   "home":actions=[["Bàn học • Learn",open_learning],["Viết thư ở bàn",show_writing],["Tủ đồ / nâng cấp",show_shop]]
@@ -486,8 +533,25 @@ func enter_room(id:String)->void:
   "clara":actions=[["Quầy gửi / rút",show_bank]]
   _:actions=[["Trò chuyện",func():interact_npc(id)]]
  for i in range(actions.size()):
-  var b:=make_button(room_ui,actions[i][0],actions[i][1]);b.position=Vector2(290+i*240,300);b.size=Vector2(220,55)
-func leave_room()->void:interior.hide();room_ui.hide();close_dialog()
+  var b:=make_button(room_ui,actions[i][0],actions[i][1])
+  b.position=Vector2(290+i*240,300)
+  b.size=Vector2(220,55)
+
+func leave_room()->void:
+ var room_id:=current_room
+ var n:=npc_by_id(room_id)
+ interior.hide()
+ room_ui.hide()
+ dialog.hide()
+ screen=""
+ current_room=""
+ pending_npc=""
+ pending_door=""
+ fishing_running=false
+ player.stop()
+ if not n.is_empty():
+  player.position=n.door*2+Vector2(0,110)
+ get_viewport().gui_release_focus()
 func show_bank()->void:
  if state.level<3:notify("Ngân hàng mở ở cấp3.");return
  open_dialog("bank","Bank • Sổ tiết kiệm")
