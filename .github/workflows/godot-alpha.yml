@@ -95,6 +95,29 @@ jobs:
           ! grep -Eq 'SCRIPT ERROR:|Parse Error:|ERROR:' export.log
           cp docs/PLAY_DEMO_VI.txt build/windows/HUONG_DAN.txt
 
+      - name: Upload source snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: EnglishFarm-V4-Source
+          path: |
+            .gitignore
+            README.md
+            project.godot
+            export_presets.cfg
+            publish-github.ps1
+            .github/
+            art-preview/
+            art/
+            data/
+            docs/
+            game/
+            image/
+            scripts/
+            tests/
+            tools/
+            ui/
+          if-no-files-found: error
+
       - name: Upload Windows demo
         uses: actions/upload-artifact@v4
         with:
