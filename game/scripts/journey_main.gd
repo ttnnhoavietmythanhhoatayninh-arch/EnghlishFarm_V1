@@ -675,19 +675,19 @@ func process_room_movement(delta:float)->void:
  if current_room.is_empty():return
  var data:Dictionary=interior.room_data(current_room)
  var floor:Rect2=data.floor_rect
- var move:=Input.get_vector("move_left","move_right","move_up","move_down")
- var motion:=Vector2.ZERO
+ var move:Vector2=Input.get_vector("move_left","move_right","move_up","move_down")
+ var motion:Vector2=Vector2.ZERO
  if move.length_squared()>0.01:
   room_has_target=false
   motion=move.normalized()*260.0*minf(delta,0.05)
  elif room_has_target:
-  var distance:=player.position.distance_to(room_target)
+  var distance:float=player.position.distance_to(room_target)
   if distance<5:
    room_has_target=false
   else:
    motion=player.position.direction_to(room_target)*minf(260.0*minf(delta,0.05),distance)
  if motion!=Vector2.ZERO:
-  var next:=player.position+motion
+  var next:Vector2=player.position+motion
   next.x=clampf(next.x,floor.position.x+24,floor.end.x-24)
   next.y=clampf(next.y,floor.position.y+24,floor.end.y-24)
   player.position=next
@@ -699,7 +699,7 @@ func nearest_room_object()->Dictionary:
  var best:Dictionary={}
  var best_distance:=100.0
  for obj in data.objects:
-  var d:=player.position.distance_to(Rect2(obj.rect).get_center())
+  var d:float=player.position.distance_to(Rect2(obj.rect).get_center())
   if d<best_distance:
    best_distance=d
    best=obj
