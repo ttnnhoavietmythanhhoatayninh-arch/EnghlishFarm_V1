@@ -20,6 +20,8 @@ static func vec_to_json(value:Vector2)->Dictionary:
  return {"x":value.x,"y":value.y}
 
 static func json_to_vec(value:Variant,fallback:=Vector2.ZERO)->Vector2:
+ if value is Vector2:
+  return value if value.is_finite() else fallback
  if not value is Dictionary:return fallback
  var x=value.get("x",fallback.x)
  var y=value.get("y",fallback.y)
