@@ -994,7 +994,7 @@ func show_settings()->void:
    if state.crop_status(i,crop_time())=="wilted":state.plots[i]={}
   changed();refresh_crops();message("Đã dọn cây héo; từ đã học vẫn giữ nguyên."))
  line("Dữ liệu được tự lưu trên máy. Không cần tài khoản.",16)
- line("Lưu thủ công",21)
+ line("Quản lý bản lưu",21)
  for slot in [1,2,3]:
   var row:=HBoxContainer.new()
   row.add_theme_constant_override("separation",10)
@@ -1006,8 +1006,10 @@ func show_settings()->void:
    var saved_at:=int(meta.get("saved_at",0))
    var stamp:=Time.get_datetime_string_from_unix_time(saved_at,true) if saved_at>0 else "không rõ giờ"
    var room_name:=str(meta.context.get("current_room",""))
+   var pos_key:="room_player_position" if not room_name.is_empty() else "world_player_position"
    if room_name.is_empty():room_name="town"
-   label_text="Ô %d • Lv.%d • %s • %s • %s"%[slot_id,int(meta.state.get("level",1)),str(meta.state.get("difficulty","easy")),room_name,stamp]
+   var saved_pos:Vector2=SaveManager.json_to_vec(meta.context.get(pos_key,{}),Vector2.ZERO)
+   label_text="Ô %d • Lv.%d • %s • %s (%.0f, %.0f) • %s"%[slot_id,int(meta.state.get("level",1)),str(meta.state.get("difficulty","easy")),room_name,saved_pos.x,saved_pos.y,stamp]
   var label_slot:=Label.new()
   label_slot.text=label_text
   label_slot.custom_minimum_size.x=255
