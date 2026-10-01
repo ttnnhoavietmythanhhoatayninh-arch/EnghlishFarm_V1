@@ -725,10 +725,36 @@ func leave_room()->void:
  for b in command_buttons:b.show()
  get_viewport().gui_release_focus()
 
+func room_position_walkable(point:Vector2,data:Dictionary)->bool:
+ var floor:Rect2=Rect2(data.floor_rect).grow(-24)
+ if not floor.has_point(point):
+  return false
+ for obj in data.objects:
+  if Rect2(obj.rect).grow(22).has_point(point):
+   return false
+ return true
+
+func move_room_player(motion:Vector2,data:Dictionary)->void:
+ if motion==Vector2.ZERO:
+  return
+ var floor:Rect2=Rect2(data.floor_rect).grow(-24)
+ var target:=player.position+motion
+ target.x=clampf(target.x,floor.position.x,floor.end.x)
+ target.y=clampf(target.y,floor.position.y,floor.end.y)
+ if room_position_walkable(target,data):
+  player.position=target
+  return
+ # Slide along furniture instead of freezing both axes.
+ var x_target:=Vector2(target.x,player.position.y)
+ if room_position_walkable(x_target,data):
+  player.position=x_target
+ var y_target:=Vector2(player.position.x,target.y)
+ if room_position_walkable(y_target,data):
+  player.position=y_target
+
 func process_room_movement(delta:float)->void:
  if current_room.is_empty():return
  var data:Dictionary=interior.room_data(current_room)
- var floor:Rect2=data.floor_rect
  var move:Vector2=Input.get_vector("move_left","move_right","move_up","move_down")
  var motion:Vector2=Vector2.ZERO
  if move.length_squared()>0.01:
@@ -740,11 +766,7 @@ func process_room_movement(delta:float)->void:
    room_has_target=false
   else:
    motion=player.position.direction_to(room_target)*minf(260.0*minf(delta,0.05),distance)
- if motion!=Vector2.ZERO:
-  var next:Vector2=player.position+motion
-  next.x=clampf(next.x,floor.position.x+24,floor.end.x-24)
-  next.y=clampf(next.y,floor.position.y+24,floor.end.y-24)
-  player.position=next
+ move_room_player(motion,data)
  update_room_hint()
 
 func nearest_room_object()->Dictionary:
