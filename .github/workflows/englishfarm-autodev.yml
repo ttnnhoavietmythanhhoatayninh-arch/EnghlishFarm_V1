@@ -1,0 +1,193 @@
+name: EnglishFarm Autonomous Developer
+
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: "Task for the autonomous agent. Leave blank to use ROADMAP.md."
+        required: false
+        type: string
+      auto_merge:
+        description: "Auto-merge after all verification passes"
+        required: true
+        default: true
+        type: boolean
+  issues:
+    types: [labeled]
+  schedule:
+    - cron: "0 17 * * *"
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  actions: read
+
+concurrency:
+  group: englishfarm-autodev
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    if: >
+      github.event_name != 'issues' ||
+      github.event.label.name == 'agent-run'
+    runs-on: ubuntu-latest
+    outputs:
+      branch: ${{ steps.meta.outputs.branch }}
+      task: ${{ steps.meta.outputs.task }}
+    steps:
+      - name: Resolve task
+        id: meta
+        shell: bash
+        env:
+          MANUAL_TASK: ${{ github.event.inputs.task }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          slug="agent/$(date -u +%Y%m%d-%H%M%S)"
+          echo "branch=$slug" >> "$GITHUB_OUTPUT"
+          if [ "$EVENT_NAME" = "workflow_dispatch" ] && [ -n "${MANUAL_TASK:-}" ]; then
+            printf 'task<<EOF\n%s\nEOF\n' "$MANUAL_TASK" >> "$GITHUB_OUTPUT"
+          elif [ "$EVENT_NAME" = "issues" ]; then
+            printf 'task<<EOF\nIssue: %s\n\n%s\nEOF\n' "$ISSUE_TITLE" "$ISSUE_BODY" >> "$GITHUB_OUTPUT"
+          else
+            printf 'task<<EOF\nPick the highest unchecked item from agent/ROADMAP.md. Repair verified bugs before adding features.\nEOF\n' >> "$GITHUB_OUTPUT"
+          fi
+
+  agent:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      BRANCH_NAME: ${{ needs.prepare.outputs.branch }}
+      AUTODEV_TASK: ${{ needs.prepare.outputs.task }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create agent branch
+        run: |
+          git checkout -b "$BRANCH_NAME"
+
+      - name: Write current task
+        run: |
+          mkdir -p agent
+          {
+            echo "# Current task"
+            echo
+            printf '%s\n' "$AUTODEV_TASK"
+          } > agent/CURRENT_TASK.md
+
+      - name: Codex implementation pass
+        id: codex1
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          permission-profile: ":workspace"
+          prompt-file: agent/AUTODEV_PROMPT.md
+
+      - name: Verify pass 1
+        id: verify1
+        continue-on-error: true
+        run: |
+          chmod +x scripts/agent_verify.sh
+          scripts/agent_verify.sh 2>&1 | tee agent-verify-pass1.log
+
+      - name: Build repair prompt after failed verification
+        if: steps.verify1.outcome == 'failure'
+        run: |
+          {
+            echo "# Repair failed verification"
+            echo
+            echo "Read AGENTS.md and the current task."
+            echo "The first implementation did not pass verification."
+            echo "Inspect the logs below, identify root cause, add/fix regression coverage, repair the implementation, and run relevant checks."
+            echo
+            echo "## Verification log"
+            echo '```'
+            tail -n 500 agent-verify-pass1.log
+            echo '```'
+          } > agent/REPAIR_CURRENT.md
+
+      - name: Codex repair pass 1
+        if: steps.verify1.outcome == 'failure'
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          permission-profile: ":workspace"
+          prompt-file: agent/REPAIR_CURRENT.md
+
+      - name: Verify pass 2
+        id: verify2
+        if: steps.verify1.outcome == 'failure'
+        continue-on-error: true
+        run: |
+          scripts/agent_verify.sh 2>&1 | tee agent-verify-pass2.log
+
+      - name: Build final repair prompt
+        if: steps.verify1.outcome == 'failure' && steps.verify2.outcome == 'failure'
+        run: |
+          {
+            echo "# Final autonomous repair attempt"
+            echo
+            echo "Verification still fails. Do not add new features."
+            echo "Focus only on the failing root cause and produce the smallest safe fix."
+            echo "Do not disable or weaken tests."
+            echo
+            echo "## Latest log"
+            echo '```'
+            tail -n 700 agent-verify-pass2.log
+            echo '```'
+          } > agent/REPAIR_FINAL.md
+
+      - name: Codex repair pass 2
+        if: steps.verify1.outcome == 'failure' && steps.verify2.outcome == 'failure'
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          permission-profile: ":workspace"
+          prompt-file: agent/REPAIR_FINAL.md
+
+      - name: Final verification
+        id: verify_final
+        run: |
+          scripts/agent_verify.sh 2>&1 | tee agent-verify-final.log
+
+      - name: Commit verified changes
+        run: |
+          git config user.name "EnglishFarm AutoDev"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git commit -m "agent: autonomous EnglishFarm update"
+          git push -u origin "$BRANCH_NAME"
+
+      - name: Open PR
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! git rev-parse --verify HEAD >/dev/null 2>&1; then exit 0; fi
+          url=$(gh pr create \
+            --base main \
+            --head "$BRANCH_NAME" \
+            --title "AutoDev: EnglishFarm verified update" \
+            --body "Automated EnglishFarm update. Godot verification passed before this PR was opened.")
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Auto-merge verified PR
+        if: >
+          steps.pr.outputs.url != '' &&
+          (github.event_name == 'schedule' ||
+           github.event_name == 'issues' ||
+           github.event.inputs.auto_merge == 'true')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr merge "${{ steps.pr.outputs.url }}" --squash --delete-branch
