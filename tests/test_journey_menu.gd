@@ -24,7 +24,7 @@ func run()->void:
 
  g.select_difficulty("normal")
  g.finish_guide()
- var ctx:=g.current_save_context()
+ var ctx:Dictionary=g.current_save_context()
  assert(g.SaveManager.write_autosave(g.state.to_dict(),ctx,1001))
  assert(g.SaveManager.write_slot(1,g.state.to_dict(),ctx,1002))
  g.show_start_menu()
