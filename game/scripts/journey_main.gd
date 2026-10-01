@@ -109,13 +109,14 @@ func build_ui()->void:
  for i in range(commands.size()):
   var b:=Button.new();b.text=commands[i][0];b.icon=load("res://game/assets/ui/v3_"+str(commands[i][1])+".svg")
   b.icon_alignment=HORIZONTAL_ALIGNMENT_CENTER;b.vertical_icon_alignment=VERTICAL_ALIGNMENT_TOP
-  b.position=Vector2(18+i*110,630);b.size=Vector2(100,72)
+  b.position=Vector2(18+i*110,610);b.size=Vector2(100,72)
   var action:Callable=commands[i][2]
   b.pressed.connect(func():
    if state.onboarded:action.call()
    else:notify("Hãy chọn độ khó và đọc hướng dẫn trước khi chơi."))
   ui.add_child(b);command_buttons.append(b)
- hint=Label.new();hint.position=Vector2(20,105);hint.add_theme_font_size_override("font_size",17);ui.add_child(hint)
+ hint=Label.new();hint.position=Vector2(20,105);hint.add_theme_font_size_override("font_size",17)
+ hint.add_theme_stylebox_override("normal",Style.box("fff6dfcc","afbb88",8));ui.add_child(hint)
  toast=Label.new();toast.position=Vector2(470,24);toast.custom_minimum_size=Vector2(620,48);toast.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART
  toast.add_theme_stylebox_override("normal",Style.box("fff0c9"));ui.add_child(toast);toast.hide()
  map_panel=PanelContainer.new();map_panel.position=Vector2(1010,14);map_panel.size=Vector2(252,200);ui.add_child(map_panel)
@@ -130,12 +131,12 @@ func build_ui()->void:
    if nav.allowed(target):player.walk_to(target)
    else:notify("Khu vực này chưa mở. Hoàn thành 3 nhiệm vụ để lên cấp."))
  mv.add_child(minimap);map_panel.hide()
- dialog=PanelContainer.new();dialog.position=Vector2(704,140);dialog.size=Vector2(550,470);ui.add_child(dialog)
+ dialog=PanelContainer.new();dialog.position=Vector2(704,110);dialog.size=Vector2(550,360);ui.add_child(dialog)
  var outer:=VBoxContainer.new();outer.add_theme_constant_override("separation",8);dialog.add_child(outer)
  var header:=HBoxContainer.new();outer.add_child(header)
  title_label=Label.new();title_label.size_flags_horizontal=Control.SIZE_EXPAND_FILL;title_label.add_theme_font_size_override("font_size",23);header.add_child(title_label)
  close_button=make_button(header,"×",close_dialog,36)
- var scroll:=ScrollContainer.new();scroll.custom_minimum_size=Vector2(510,335);scroll.size_flags_vertical=Control.SIZE_EXPAND_FILL;outer.add_child(scroll)
+ var scroll:=ScrollContainer.new();scroll.custom_minimum_size=Vector2(510,180);scroll.size_flags_vertical=Control.SIZE_EXPAND_FILL;outer.add_child(scroll)
  body=VBoxContainer.new();body.custom_minimum_size.x=482;body.size_flags_horizontal=Control.SIZE_EXPAND_FILL;body.add_theme_constant_override("separation",10);scroll.add_child(body)
  feedback=Label.new();feedback.custom_minimum_size=Vector2(480,46);feedback.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART;outer.add_child(feedback)
  dialog.hide()
@@ -165,7 +166,14 @@ func open_dialog(id:String,title:String)->void:
  screen=id;fishing_running=false;player.stop();pending_npc="";pending_door=""
  for c in body.get_children():body.remove_child(c);c.queue_free()
  title_label.text=title;feedback.text="";feedback.modulate=Color.WHITE;close_button.disabled=false
- dialog.show();dialog.position=Vector2(704,140)
+ dialog.show()
+ fit_dialog_layout()
+
+func fit_dialog_layout()->void:
+ if dialog==null or body==null:return
+ var desired:float=clampf(body.get_combined_minimum_size().y+150.0,260.0,560.0)
+ dialog.size=Vector2(550,desired)
+ dialog.position=Vector2(365,60) if interior.visible else Vector2(704,110)
 
 func close_dialog()->void:
  if screen=="difficulty" and not state.difficulty_chosen:return
@@ -222,6 +230,7 @@ func _process(delta:float)->void:
  refresh_clock+=delta
  if refresh_clock>0.4:
   refresh_clock=0;refresh_crops();minimap.queue_redraw()
+  if dialog.visible:fit_dialog_layout()
   if not interior.visible:
    var nearby:=nearest_npc()
    hint.text="[E] "+str(nearby.name)+" • "+str(nearby.role) if not nearby.is_empty() else "WASD / mũi tên: đi • nhấp NPC: đến nói chuyện • ?: hướng dẫn"
@@ -491,7 +500,7 @@ func show_farm()->void:
  for i in range(6 if state.orchard_open else 3):
   var row:=HBoxContainer.new();body.add_child(row)
   var l:=Label.new();l.text="Ô%d • %s"%[i+1,state.crop_status(i,crop_time())];l.custom_minimum_size.x=165;row.add_child(l)
-  for pair in [["Plant","plant"],["Water","water"],["Harvest","harvest"]]:make_button(row,pair[0],func():farm_action(pair[1],i),36)
+  for pair in [["Gieo (Plant)","plant"],["Tưới (Water)","water"],["Thu hoạch (Harvest)","harvest"]]:make_button(row,pair[0],func():farm_action(pair[1],i),36)
  make_button(body,"Cập nhật tình trạng cây",show_farm)
  make_button(body,"Mua 3 hạt • 3 cards",func():
   if state.unlocked.is_empty():message("Học và hoàn thành bài đọc để mở loại hạt trước.",false);return
@@ -514,7 +523,11 @@ func show_settings()->void:
   make_button(body,mode.capitalize()+(" ✓" if state.difficulty==mode else ""),func():state.choose_difficulty(mode);changed();show_settings())
  line("Cỡ chữ",21)
  var slider:=HSlider.new();slider.min_value=16;slider.max_value=24;slider.step=1;slider.value=state.text_size;body.add_child(slider)
- slider.value_changed.connect(func(v):state.text_size=int(v);ui.theme.default_font_size=int(v);save_game();message("Cỡ chữ áp dụng khi mở lại nội dung."))
+ slider.value_changed.connect(func(v):
+  state.text_size=int(v)
+  ui.theme.default_font_size=int(v)
+  save_game()
+  call_deferred("show_settings"))
  var trial:=CheckButton.new();trial.text="Chế độ thử nhanh (tắt = 12 giờ)";trial.button_pressed=state.demo_mode;body.add_child(trial)
  trial.toggled.connect(func(on):
   for p in state.plots:
@@ -527,21 +540,21 @@ func show_settings()->void:
  line("Tự lưu trên máy. Không cần tài khoản. Không thu giọng nói. File tiến trình V3 riêng, bản cũ vẫn được giữ.",16)
 func setup_people()->void:
  npc_data=[
- {"id":"home","name":"Momo","role":"Your home","relation":"Căn nhà và khu vườn đầu tiên của bạn.","place":"Farm — Nông trại","at":Vector2(200,690),"door":Vector2(190,680),"sprite":0,"level":1},
- {"id":"lily","name":"Lily","role":"Librarian / Thủ thư","relation":"Người hướng dẫn học tập của Momo.","place":"Library — Thư viện","at":Vector2(365,660),"door":Vector2(438,307),"sprite":0,"level":1},
- {"id":"tom","name":"Tom","role":"Farmer / Nông dân","relation":"Hàng xóm dạy Momo chăm vườn.","place":"Garden — Khu vườn","at":Vector2(440,640),"door":Vector2(450,650),"sprite":1,"level":1},
- {"id":"mia","name":"Mia","role":"Merchant / Chủ tiệm","relation":"Khách hàng đầu tiên của Momo.","place":"Market — Chợ","at":Vector2(920,580),"door":Vector2(961,600),"sprite":2,"level":2},
- {"id":"emma","name":"Emma","role":"Postal worker / Bưu tá","relation":"Bạn giúp Momo trao đổi thư từ.","place":"Post office — Bưu điện","at":Vector2(1090,751),"door":Vector2(1020,756),"sprite":0,"level":2},
- {"id":"ben","name":"Ben","role":"Carpenter / Thợ mộc","relation":"Người giúp Momo sửa nhà.","place":"Workshop — Xưởng mộc","at":Vector2(275,520),"door":Vector2(250,514),"sprite":1,"level":3},
- {"id":"clara","name":"Clara","role":"Banker / Nhân viên ngân hàng","relation":"Người giữ thẻ tiết kiệm cho Momo.","place":"Bank — Ngân hàng","at":Vector2(810,264),"door":Vector2(810,250),"sprite":2,"level":3},
- {"id":"noah","name":"Noah","role":"Fisher / Người câu cá","relation":"Bạn dạy Momo câu cá.","place":"Pier — Bến câu","at":Vector2(1340,781),"door":Vector2(1310,778),"sprite":1,"level":3}]
+ {"id":"home","name":"Momo","role":"Nhà của bạn","relation":"Căn nhà và khu vườn đầu tiên của bạn.","place":"Nông trại (Farm)","at":Vector2(200,690),"door":Vector2(190,680),"sprite":0,"level":1},
+ {"id":"lily","name":"Lily","role":"Thủ thư","relation":"Người hướng dẫn học tập của Momo.","place":"Thư viện (Library)","at":Vector2(365,660),"door":Vector2(438,307),"sprite":0,"level":1},
+ {"id":"tom","name":"Tom","role":"Nông dân","relation":"Hàng xóm dạy Momo chăm vườn.","place":"Khu vườn (Garden)","at":Vector2(440,640),"door":Vector2(450,650),"sprite":1,"level":1},
+ {"id":"mia","name":"Mia","role":"Chủ tiệm","relation":"Khách hàng đầu tiên của Momo.","place":"Chợ (Market)","at":Vector2(920,580),"door":Vector2(961,600),"sprite":2,"level":2},
+ {"id":"emma","name":"Emma","role":"Bưu tá","relation":"Bạn giúp Momo trao đổi thư từ.","place":"Bưu điện (Post Office)","at":Vector2(1090,751),"door":Vector2(1020,756),"sprite":0,"level":2},
+ {"id":"ben","name":"Ben","role":"Thợ mộc","relation":"Người giúp Momo sửa nhà.","place":"Xưởng mộc (Workshop)","at":Vector2(275,520),"door":Vector2(250,514),"sprite":1,"level":3},
+ {"id":"clara","name":"Clara","role":"Nhân viên ngân hàng","relation":"Người giữ thẻ tiết kiệm cho Momo.","place":"Ngân hàng (Bank)","at":Vector2(810,264),"door":Vector2(810,250),"sprite":2,"level":3},
+ {"id":"noah","name":"Noah","role":"Người câu cá","relation":"Bạn dạy Momo câu cá.","place":"Bến câu (Pier)","at":Vector2(1340,781),"door":Vector2(1310,778),"sprite":1,"level":3}]
  for n in npc_data:
   if n.id!="home":
    var node:=Node2D.new();var v=art.animated("npcs",{"idle":[n.sprite,n.sprite+3]},62.0);node.add_child(v);v.play("idle")
    var label:=Label.new();label.text=n.name+"\n"+n.role;label.position=Vector2(-65,-105);label.add_theme_font_size_override("font_size",16)
    label.add_theme_color_override("font_color",Color("342b24"));label.add_theme_stylebox_override("normal",Style.box("f9edcd"));node.add_child(label)
    add_child(node);npc_nodes[n.id]=node
-  var sign:=Label.new();sign.text=n.place+"\n[E / click] Enter";sign.position=n.door*2+Vector2(-65,0);sign.z_index=3000
+  var sign:=Label.new();sign.text=n.place+"\nNhấn E để vào";sign.position=n.door*2+Vector2(-65,0);sign.z_index=3000
   sign.add_theme_font_size_override("font_size",15);sign.add_theme_color_override("font_color",Color("40362b"));sign.add_theme_stylebox_override("normal",Style.box("f1e1b6"))
   add_child(sign);door_nodes[n.id]=sign
 func npc_by_id(id:String)->Dictionary:
@@ -566,7 +579,7 @@ func interact_npc(id:String)->void:
   pending_npc=""
   enter_room(id)
   return
- open_dialog("npc",n.name+" • "+str(n.role).split(" / ")[0])
+ open_dialog("npc",n.name+" • "+str(n.role))
  line(n.place,22)
  line(n.relation)
  line("Tình bạn: %d"%int(state.friendship.get(id,0)),16)
@@ -596,7 +609,7 @@ func interact_npc(id:String)->void:
    line("Thả câu rồi bấm Kéo khi kim nằm trong vùng 40–70.")
    make_button(body,"Thử câu cá",show_fishing)
  if not interior.visible and id not in ["tom","noah"] and not (id=="lily" and state.level<2):
-  make_button(body,"Vào "+str(n.place).split(" — ")[0],func():enter_room(id))
+  make_button(body,"Vào "+str(n.place),func():enter_room(id))
 
 
 func enter_room(id:String)->void:
