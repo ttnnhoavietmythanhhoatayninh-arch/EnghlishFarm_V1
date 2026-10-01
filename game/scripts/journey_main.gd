@@ -109,7 +109,7 @@ func apply_loaded_context(context:Dictionary)->void:
  dialog.hide()
  map_panel.hide()
  var world_pos:=SaveManager.json_to_vec(context.get("world_player_position",{}),Vector2(400,1380))
- var safe_world:=nav.safe_walkable_near(world_pos,420.0)
+ var safe_world:Vector2=nav.safe_walkable_near(world_pos,420.0)
  if not safe_world.is_finite():
   safe_world=nav.safe_walkable_near(Vector2(400,1380),420.0)
  if not safe_world.is_finite():
@@ -119,7 +119,7 @@ func apply_loaded_context(context:Dictionary)->void:
  player.global_position=safe_world
  world_player_position=safe_world
  var room_id:=str(context.get("current_room",""))
- var room_data:=interior.room_data(room_id) if not room_id.is_empty() else {}
+ var room_data:Dictionary=interior.room_data(room_id) if not room_id.is_empty() else {}
  var n:=npc_by_id(room_id)
  if not room_id.is_empty() and not n.is_empty() and state.level>=int(n.level):
   enter_room(room_id)
@@ -359,7 +359,7 @@ func _process(delta:float)->void:
  autosave_clock+=delta
  if state.onboarded and autosave_clock>=30.0:
   autosave_clock=0.0
-  var moved:=last_autosave_position==Vector2.INF or player.global_position.distance_to(last_autosave_position)>4.0
+  var moved:bool=last_autosave_position==Vector2.INF or player.global_position.distance_to(last_autosave_position)>4.0
   if moved or state.delivery_active:
    save_game()
  if refresh_clock>0.4:
