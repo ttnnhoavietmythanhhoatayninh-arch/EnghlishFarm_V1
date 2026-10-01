@@ -1,0 +1,20 @@
+{
+  "cell_size": 512,
+  "character_height_px": 400,
+  "feet_y_in_cell": 502,
+  "name_tag": {
+    "font_size_screen_px": 18,
+    "outline_px": 5,
+    "outline_color": "#2B1B12",
+    "gap_above_head_px": 6
+  },
+  "npcs": [
+    {"index":0,"id":"noah","name":"Noah","role":"Fisherman – câu cá","name_color":"#7EC8FF","sprite":"characters/npc_noah.png","nametag":"nametags/nametag_noah.png","atlas_cell":{"col":0,"row":0,"x":0,"y":0,"w":512,"h":512}},
+    {"index":1,"id":"lily","name":"Lily","role":"Teacher – cô giáo","name_color":"#9CE59A","sprite":"characters/npc_lily.png","nametag":"nametags/nametag_lily.png","atlas_cell":{"col":1,"row":0,"x":512,"y":0,"w":512,"h":512}},
+    {"index":2,"id":"ben","name":"Ben","role":"Carpenter – thợ mộc","name_color":"#FFB066","sprite":"characters/npc_ben.png","nametag":"nametags/nametag_ben.png","atlas_cell":{"col":2,"row":0,"x":1024,"y":0,"w":512,"h":512}},
+    {"index":3,"id":"mia","name":"Mia","role":"Market girl – đặt hàng cà rốt","name_color":"#FF8FA3","sprite":"characters/npc_mia.png","nametag":"nametags/nametag_mia.png","atlas_cell":{"col":3,"row":0,"x":1536,"y":0,"w":512,"h":512}},
+    {"index":4,"id":"emma","name":"Emma","role":"Postwoman – thư","name_color":"#C9A7FF","sprite":"characters/npc_emma.png","nametag":"nametags/nametag_emma.png","atlas_cell":{"col":0,"row":1,"x":0,"y":512,"w":512,"h":512}},
+    {"index":5,"id":"tom","name":"Tom","role":"Farmer – nông dân","name_color":"#FFE066","sprite":"characters/npc_tom.png","nametag":"nametags/nametag_tom.png","atlas_cell":{"col":1,"row":1,"x":512,"y":512,"w":512,"h":512}},
+    {"index":6,"id":"clara","name":"Clara","role":"Banker – ngân hàng cards","name_color":"#7FE3D1","sprite":"characters/npc_clara.png","nametag":"nametags/nametag_clara.png","atlas_cell":{"col":2,"row":1,"x":1024,"y":512,"w":512,"h":512}}
+  ]
+}
