@@ -1,4 +1,5 @@
 extends SceneTree
+# Final visual acceptance set: onboarding, rooms, and in-room dialogue.
 
 func _initialize()->void:
  call_deferred("capture")
