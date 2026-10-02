@@ -25,6 +25,7 @@ var art:RefCounted
 var nav:RefCounted
 var curriculum:Dictionary
 var lessons:Dictionary
+var learning_v2:Dictionary
 var world:Texture2D
 var starter:Texture2D
 var screen:=""
@@ -64,6 +65,9 @@ var quiz_index:=0
 var quiz_answers:Array=[]
 var quiz_input:LineEdit
 var seen_words:Dictionary={}
+var active_vocab:Array=[]
+var active_reading:Dictionary={}
+var active_writing_task:="task1"
 var guide_index:=0
 var pending_npc:=""
 var pending_door:=""
@@ -161,6 +165,7 @@ func _ready()->void:
  world=load("res://game/assets/town.png");starter=load("res://game/assets/town_starter.png")
  curriculum=JSON.parse_string(FileAccess.get_file_as_string("res://data/curriculum_v3.json"))
  lessons=JSON.parse_string(FileAccess.get_file_as_string("res://data/learning_v1.json"))
+ learning_v2=JSON.parse_string(FileAccess.get_file_as_string("res://data/learning_v2.json"))
  if persistence_enabled:restore_boot_state()
  state.claim_login(now());nav.unlocked_level=state.level;quest_level=state.level
  player.configure(art,nav);player.position=Vector2(200,690)*2;world_player_position=player.position
@@ -541,25 +546,78 @@ func show_unlock_notice(level:int)->void:
  make_button(body,"Xem hướng dẫn",show_help,48)
  make_button(body,"Tiếp tục chơi",close_dialog,42)
 
+
+func learning_level_data()->Dictionary:
+ if learning_v2.is_empty():return {}
+ var track:Dictionary=learning_v2.tracks.get(state.difficulty,{})
+ if track.is_empty():return {}
+ var level_key:=str(clampi(state.level,1,5))
+ return track.get(level_key,track.get("5",{}))
+
+func learning_cefr()->String:
+ return str(learning_level_data().get("cefr",""))
+
+func learning_topic()->String:
+ return str(learning_level_data().get("topic",""))
+
+func next_learning_cycle(kind:String)->int:
+ var key:="__cycle__:"+kind+":"+state.difficulty+":"+str(state.level)
+ var value:=int(state.studied.get(key,0))
+ state.studied[key]=value+1
+ save_game()
+ return value
+
+func begin_vocabulary_session()->void:
+ var data:=learning_level_data()
+ var pool:Array=data.get("vocabulary",[])
+ if pool.size()<3:
+  message("Chưa có đủ dữ liệu từ vựng cho level này.",false)
+  return
+ var cycle:=next_learning_cycle("vocabulary")
+ var start:=(cycle*3)%pool.size()
+ active_vocab=[]
+ for i in range(3):active_vocab.append(pool[(start+i)%pool.size()])
+ seen_words.clear()
+ show_vocabulary(0)
+
+func begin_reading_session()->void:
+ active_reading=learning_level_data().get("reading",{})
+ show_reading()
+
 func open_learning()->void:
  if not state.difficulty_chosen:return
- open_dialog("learn","Learn • Học và luyện tập")
- tip_once("learn","Học 3 từ rồi làm bài kiểm tra.")
- line("Chọn nội dung để học trước. Bài kiểm tra chỉ mở sau khi bạn đã xem phần kiến thức.")
- for item in [["Vocabulary • Từ vựng",func():show_vocabulary(0)],["Grammar • Ngữ pháp",show_grammar],["Reading • Kỹ năng đọc",show_reading],["Writing • Kỹ năng viết",show_writing_lesson],["Places • Tên các địa điểm",show_places]]:make_button(body,item[0],item[1])
+ open_dialog("learn","Learn • "+learning_cefr()+" • Level "+str(state.level))
+ tip_once("learn","Mỗi lần mở Vocabulary, game lấy một bộ 3 từ khác trong pool của level hiện tại.")
+ line("Chủ đề hiện tại • "+learning_topic(),20)
+ line("Từ vựng thay đổi theo mỗi lần học; level khác dùng pool khác. Reading và Writing được điều chỉnh theo "+learning_cefr()+".",16)
+ for item in [
+  ["Vocabulary • Từ vựng",begin_vocabulary_session],
+  ["Grammar • Ngữ pháp",show_grammar],
+  ["Reading • Kỹ năng đọc",begin_reading_session],
+  ["Writing • Kỹ năng viết",show_writing_lesson],
+  ["Places • Tên các địa điểm",show_places]
+ ]:make_button(body,item[0],item[1])
+
 func show_vocabulary(index:int)->void:
- open_dialog("vocabulary","Vocabulary • %d/3"%(index+1));seen_words[state.difficulty+":"+str(index)]=true
- var w:Dictionary=curriculum.words[state.difficulty][index]
- line(w.word,30);line(w.ipa+"  •  "+w.stress,17)
- line("Nghĩa: "+w.vi,21);line(w.explanation);line("Use • "+w.use)
- line("Example • "+w.example);line(w.translation,16)
- make_button(body,"Nghe phát âm • giọng hệ thống",func():speak(w.word))
+ if active_vocab.size()!=3:
+  begin_vocabulary_session()
+  return
+ index=clampi(index,0,2)
+ open_dialog("vocabulary","Vocabulary • "+learning_cefr()+" • %d/3"%(index+1))
+ seen_words[str(index)]=true
+ var w:Array=active_vocab[index]
+ line(str(w[0]),30)
+ line("Nghĩa • "+str(w[1]),22)
+ line("Context • "+str(w[2]),18)
+ line("Topic • "+learning_topic(),16)
+ make_button(body,"Nghe phát âm • giọng hệ thống",func():speak(str(w[0])))
  if index>0:make_button(body,"← Từ trước",func():show_vocabulary(index-1))
  if index<2:make_button(body,"Từ tiếp theo →",func():show_vocabulary(index+1))
  var all_seen:=true
  for i in range(3):
-  if not seen_words.has(state.difficulty+":"+str(i)):all_seen=false
+  if not seen_words.has(str(i)):all_seen=false
  if all_seen:make_button(body,"Đã học 3 từ • Bắt đầu quiz",func():mark_studied("vocabulary");start_quiz("vocabulary"))
+ make_button(body,"Bộ 3 từ khác",begin_vocabulary_session)
  make_button(body,"← Các mục học",open_learning)
 func speak(word:String)->void:
  var voices=DisplayServer.tts_get_voices_for_language("en")
@@ -573,17 +631,63 @@ func show_grammar()->void:
  for pair in [["Form",g.form],["Meaning",g.meaning],["Use",g.use]]:line(pair[0]+" • "+pair[1])
  for example in g.examples:line(example)
  make_button(body,"Đã học • Làm bài ngữ pháp",func():mark_studied("grammar");start_quiz("grammar"))
+
+func reading_type_label(kind:String)->String:
+ var labels={
+  "true_false_not_given":"True / False / Not Given",
+  "yes_no_not_given":"Yes / No / Not Given",
+  "completion":"Completion",
+  "matching":"Matching",
+  "short_answer":"Short Answer",
+  "multiple_choice":"Multiple Choice"
+ }
+ return str(labels.get(kind,kind))
+
 func show_reading()->void:
- open_dialog("reading","Reading • Đọc có mục đích")
+ if active_reading.is_empty():active_reading=learning_level_data().get("reading",{})
+ if active_reading.is_empty():
+  message("Chưa có bài Reading cho level này.",false)
+  return
+ open_dialog("reading","Reading • "+learning_cefr()+" • "+str(active_reading.get("title","")))
  for step in curriculum.reading.steps:line(step)
- line(curriculum.reading.strategy,17);line(curriculum.reading.example)
- line("Đoạn đọc của bạn",22);line(lessons[state.difficulty].passage)
- make_button(body,"Đã đọc hướng dẫn • Trả lời 3 câu",func():mark_studied("reading");start_quiz("reading"))
+ line("Dạng bài trong level này",20)
+ for q in active_reading.get("questions",[]):line("• "+reading_type_label(str(q.get("type","short_answer"))),16)
+ line("Đoạn đọc",22);line(str(active_reading.get("passage","")),17)
+ make_button(body,"Đã đọc • Làm 3 câu",func():mark_studied("reading");start_quiz("reading"))
+ make_button(body,"← Các mục học",open_learning)
+
+func writing_data()->Dictionary:
+ return learning_level_data().get("writing",{})
+
 func show_writing_lesson()->void:
- open_dialog("writing_lesson","Writing • Viết thư rõ ý")
- for step in curriculum.writing.steps:line(step)
- line("Bài mẫu",22);line(curriculum.writing.example);line(curriculum.writing.note,16)
- make_button(body,"Đã học • Tập viết",func():mark_studied("writing");show_writing())
+ var data:=writing_data()
+ open_dialog("writing_lesson","Writing • "+learning_cefr())
+ line("Task 1 dùng bố cục thư/email kiểu VSTEP-style: mục đích rõ, trả lời đủ yêu cầu, giọng điệu phù hợp và kết thư.",17)
+ line("Task 2 là bài luận VSTEP-style được điều chỉnh độ dài theo CEFR để phù hợp tiến trình trong game.",17)
+ line("Lưu ý: ZIP Vocabulary in Use không chứa template VSTEP; phần Writing là nội dung bổ sung của EnglishFarm.",15)
+ if data.has("task1"):
+  var t1:Dictionary=data.task1
+  make_button(body,"Task 1 • "+str(t1.title),func():show_writing_task_lesson("task1"),48)
+ if data.has("task2"):
+  var t2:Dictionary=data.task2
+  make_button(body,"Task 2 • "+str(t2.title),func():show_writing_task_lesson("task2"),48)
+ make_button(body,"← Các mục học",open_learning)
+
+func show_writing_task_lesson(kind:String)->void:
+ var data:=writing_data()
+ if not data.has(kind):
+  message("Task này chưa mở ở mức "+learning_cefr()+".",false)
+  return
+ active_writing_task=kind
+ var task:Dictionary=data[kind]
+ open_dialog("writing_task_lesson","Writing • "+kind.to_upper()+" • "+learning_cefr())
+ line(str(task.title),22)
+ line(str(task.prompt),17)
+ line("Mục tiêu • "+str(task.target),17)
+ line("Khung gợi ý",20)
+ for step in task.get("template",[]):line("• "+str(step),16)
+ make_button(body,"Đã học • Bắt đầu viết",func():mark_studied("writing");show_writing(kind))
+ make_button(body,"← Chọn Writing Task",show_writing_lesson)
 func show_places()->void:
  open_dialog("places","Places • Địa điểm trong thị trấn")
  for p in curriculum.places:
@@ -596,15 +700,20 @@ func start_quiz(kind:String)->void:
   else:show_reading()
   return
  quiz_kind=kind;quiz_index=0;show_quiz_question()
+
 func show_quiz_question()->void:
  open_dialog("quiz","Practice • %d/3"%(quiz_index+1))
  var p:=ProgressBar.new();p.max_value=3;p.value=quiz_index;p.custom_minimum_size.y=18;body.add_child(p)
  if quiz_kind=="vocabulary":
-  var w:Dictionary=curriculum.words[state.difficulty][quiz_index]
-  line("Từ nào có nghĩa: "+w.vi+"?",23);line(w.explanation)
-  quiz_answers=[w.word]
+  if active_vocab.size()!=3:
+   begin_vocabulary_session()
+   return
+  var w:Array=active_vocab[quiz_index]
+  line("Từ nào có nghĩa: "+str(w[1])+"?",23)
+  line(str(w[2]),17)
+  quiz_answers=[str(w[0]).to_lower()]
   var choices:Array=[]
-  for word in curriculum.words[state.difficulty]:choices.append(str(word.word))
+  for word in active_vocab:choices.append(str(word[0]))
   choices.shuffle()
   for choice in choices:make_button(body,choice,func():answer_quiz(choice),48)
  elif quiz_kind=="grammar":
@@ -613,31 +722,51 @@ func show_quiz_question()->void:
   var choices:Array=q[1].duplicate();choices.shuffle()
   for choice in choices:make_button(body,choice,func():answer_quiz(choice),48)
  else:
-  var q:Dictionary=lessons[state.difficulty].questions[quiz_index]
-  line(lessons[state.difficulty].passage,17);line(q.prompt,23);quiz_answers=q.answers
-  quiz_input=LineEdit.new();quiz_input.placeholder_text="Nhập câu trả lời ngắn";body.add_child(quiz_input)
-  make_button(body,"Kiểm tra",func():answer_quiz(quiz_input.text))
+  if active_reading.is_empty():active_reading=learning_level_data().get("reading",{})
+  var q:Dictionary=active_reading.questions[quiz_index]
+  line(str(active_reading.passage),17)
+  line(reading_type_label(str(q.get("type","short_answer"))),16)
+  line(str(q.prompt),23)
+  quiz_answers=[]
+  if q.has("answers"):
+   for a in q.answers:quiz_answers.append(str(a).strip_edges().to_lower())
+  else:quiz_answers=[str(q.get("answer","")).strip_edges().to_lower()]
+  var qtype:=str(q.get("type","short_answer"))
+  if qtype in ["true_false_not_given","yes_no_not_given","matching","multiple_choice"]:
+   var choices:Array=[]
+   if q.has("choices"):choices=q.choices.duplicate()
+   elif qtype=="true_false_not_given":choices=["True","False","Not Given"]
+   else:choices=["Yes","No","Not Given"]
+   choices.shuffle()
+   for choice in choices:make_button(body,str(choice),func():answer_quiz(str(choice)),48)
+  else:
+   quiz_input=LineEdit.new();quiz_input.placeholder_text="Nhập câu trả lời";body.add_child(quiz_input)
+   make_button(body,"Kiểm tra",func():answer_quiz(quiz_input.text))
  make_button(body,"Gợi ý • 1 Power",func():
-  if state.spend_power():changed();message("Đáp án bắt đầu bằng: "+str(quiz_answers[0]).left(1))
+  if state.spend_power():changed();message("Gợi ý: đáp án bắt đầu bằng '"+str(quiz_answers[0]).left(1).to_upper()+"'.")
   else:message("Hết Power. Có thể quay lại bài học để xem kiến thức.",false))
  make_button(body,"Xem lại bài học",func():
   if quiz_kind=="vocabulary":show_vocabulary(quiz_index)
   elif quiz_kind=="grammar":show_grammar()
   else:show_reading())
+
 func answer_quiz(answer:String)->void:
- if answer.strip_edges().to_lower() not in quiz_answers:
-  message("Chưa đúng. Xem lại bài học hoặc thử đáp án khác; chưa bị trừ thẻ.",false);return
+ var normalized:=answer.strip_edges().to_lower()
+ if normalized not in quiz_answers:
+  message("Chưa đúng. Đọc lại thông tin liên quan rồi thử lại; chưa bị trừ thẻ.",false)
+  return
  if quiz_kind=="vocabulary":
-  var word:String=curriculum.words[state.difficulty][quiz_index].word
+  var word:String=str(active_vocab[quiz_index][0])
   if state.learned.has(word):state.review_word(word,now())
   else:state.learn_word(word,now())
  quiz_index+=1
- if quiz_index<3:show_quiz_question();changed();return
- if quiz_kind=="reading":state.unlock_seeds("carrot-"+state.difficulty,3,3)
+ if quiz_index<3:
+  show_quiz_question();changed();return
+ if quiz_kind=="reading":state.unlock_seeds("carrot-"+state.difficulty+"-L"+str(state.level),3,3)
  state.complete_task(quiz_kind)
  changed();open_dialog("quiz_done","Hoàn thành • 3/3")
- line("Bạn đã vận dụng đúng kiến thức!",24)
- line("Đã nhận 3 hạt giống nếu đây là lần hoàn thành đầu tiên ở mức này." if quiz_kind=="reading" else "Tiến trình đã lưu. Phần thưởng học từ được tính một lần; ôn có thưởng sau 24 giờ.")
+ line("Bạn đã hoàn thành bài "+quiz_kind+" ở mức "+learning_cefr()+".",24)
+ line("Reading dùng nhiều dạng câu hỏi theo CEFR; Vocabulary sẽ đổi bộ từ ở lần Learn tiếp theo.",16)
  make_button(body,"Xem nhiệm vụ tiếp theo",show_tasks)
 func show_tasks()->void:
  open_dialog("tasks","Level %d • Mục tiêu hôm nay"%state.level)
@@ -658,20 +787,57 @@ func route_task(id:String)->void:
   "fishing":interact_npc("noah")
   "bank":interact_npc("clara")
   _:show_shop()
-func show_writing()->void:
- if not state.can_test("writing"):show_writing_lesson();return
- open_dialog("letters","Letters • Viết và gửi thư")
- line(lessons[state.difficulty].writing,17)
- writing=TextEdit.new();writing.custom_minimum_size=Vector2(470,140);writing.text=state.letter_draft;writing.placeholder_text="Dear Mia, ...";body.add_child(writing)
- writing.text_changed.connect(func():state.letter_draft=writing.text.left(10000);save_game())
- line("Tự kiểm: có lời chào • trả lời yêu cầu • thời gian/số lượng • lời kết. Thư chỉ lưu trên máy; chưa chấm AI.",16)
- make_button(body,"Tôi đã kiểm tra • Gửi cho Emma",func():
-  if state.level<2:message("Bài viết đã lưu; nhiệm vụ gửi thư mở ở cấp 2.",false);return
-  if writing.text.strip_edges().split(" ",false).size()<10:message("Hãy viết ít nhất 10 từ để thực hành một thư ngắn.",false);return
-  var first:bool=state.complete_task("letter")
-  if first:state.cards+=3;state.friendship["emma"]=1
-  changed();message("Emma đã nhận thư. +3 cards cho lần đầu. Đây là xác nhận luyện tập, không phải đánh giá chất lượng tiếng Anh."))
- make_button(body,"Xem cấu trúc và bài mẫu",show_writing_lesson)
+
+func writing_draft_key(kind:String)->String:
+ return "__writing_draft__:"+state.difficulty+":"+str(state.level)+":"+kind
+
+func writing_min_words(kind:String)->int:
+ var cefr:=learning_cefr()
+ if kind=="task1":
+  return {"A1":25,"A2":40,"B1":70,"B2":90,"C1":110,"C2":130}.get(cefr,40)
+ return {"B1":100,"B2":150,"C1":180,"C2":220}.get(cefr,100)
+
+func show_writing(kind:String="task1")->void:
+ if not state.can_test("writing"):
+  show_writing_lesson();return
+ var data:=writing_data()
+ if not data.has(kind):
+  show_writing_lesson();return
+ active_writing_task=kind
+ var task:Dictionary=data[kind]
+ open_dialog("letters","Writing • "+kind.to_upper()+" • "+learning_cefr())
+ line(str(task.title),21)
+ line(str(task.prompt),17)
+ line("Mục tiêu • "+str(task.target),16)
+ writing=TextEdit.new();writing.custom_minimum_size=Vector2(470,170)
+ var draft_key:=writing_draft_key(kind)
+ writing.text=state.letter_draft if kind=="task1" else str(state.studied.get(draft_key,""))
+ writing.placeholder_text="Bắt đầu viết tại đây..."
+ body.add_child(writing)
+ writing.text_changed.connect(func():
+  if kind=="task1":state.letter_draft=writing.text.left(12000)
+  else:state.studied[draft_key]=writing.text.left(16000)
+  save_game())
+ line("Checklist • đúng mục đích • đủ ý • đoạn văn rõ • từ nối phù hợp • kiểm tra ngữ pháp/chính tả.",16)
+ make_button(body,"Xem template",func():show_writing_task_lesson(kind))
+ if data.has("task2") and kind=="task1":make_button(body,"Chuyển sang Task 2",func():show_writing("task2"))
+ if kind=="task2":make_button(body,"Chuyển sang Task 1",func():show_writing("task1"))
+ make_button(body,"Tôi đã tự kiểm tra",func():
+  var count:=writing.text.strip_edges().split(" ",false).size()
+  if count<writing_min_words(kind):
+   message("Bài hiện có "+str(count)+" từ. Hãy phát triển thêm trước khi hoàn thành.",false);return
+  if kind=="task1":
+   if state.level<2:message("Bài Task 1 đã lưu; nhiệm vụ gửi thư mở ở cấp 2.",false);return
+   var first:bool=state.complete_task("letter")
+   if first:state.cards+=3;state.friendship["emma"]=1
+   changed();message("Emma đã nhận Task 1. +3 Cards cho lần đầu. Đây là tự kiểm tra, chưa phải chấm điểm AI.")
+  else:
+   var done_key:="__writing_done__:"+state.difficulty+":"+str(state.level)+":task2"
+   var first_task2:=not bool(state.studied.get(done_key,false))
+   state.studied[done_key]=true
+   if first_task2:state.cards+=2
+   changed();message("Đã lưu Task 2"+(" và +2 Cards cho lần hoàn thành đầu tiên." if first_task2 else ".")+" Bài hiện dùng checklist tự đánh giá.")
+ )
 func show_farm()->void:
  open_dialog("farm","Farm • Khu vườn nhỏ")
  line("Hạt: %d | Cà rốt: %d\nPlant = Gieo hạt • Water = Tưới cây • Harvest = Thu hoạch"%[state.seeds,state.produce],17)
