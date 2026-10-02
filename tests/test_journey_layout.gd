@@ -8,16 +8,9 @@ func verify(g)->void:
  if not expect_test(box.bg_color.r>0.8 and box.bg_color.g>0.8,"Light parchment panel"):return
  if not expect_test(g.close_button.get_global_rect().end.x<=1280):return
 func run()->void:
- var g=load("res://game/scenes/Journey.tscn").instantiate();g.persistence_enabled=false;g.save_path="user://test_journey_layout_probe.json";root.add_child(g)
+ var g=load("res://game/scenes/Journey.tscn").instantiate();g.persistence_enabled=false;root.add_child(g)
  await process_frame
  await verify(g)
- var reset_probe:=FileAccess.open(g.save_path,FileAccess.WRITE)
- if not expect_test(reset_probe!=null,"Reset probe save must be writable"):return
- reset_probe.store_string("{\"probe\":true}")
- reset_probe.close()
- if not expect_test(FileAccess.file_exists(g.save_path),"Reset probe file exists"):return
- if not expect_test(g.erase_save_file(),"Reset must remove the save file"):return
- if not expect_test(not FileAccess.file_exists(g.save_path),"Save file must be gone after reset"):return
  g.select_difficulty("easy")
  if not expect_test(g.GUIDE_PAGES.size()==9,"V4 guide must contain 9 steps"):return
  for i in range(g.GUIDE_PAGES.size()):g.show_guide(i);await verify(g)
@@ -29,18 +22,24 @@ func run()->void:
   g.show_reading();await verify(g)
   g.show_writing_lesson();await verify(g)
  g.show_settings();await verify(g)
- g.state.cards=17
- if not expect_test(g.manual_save_game(),"Manual save must succeed"):return
- g.state.cards=1
- if not expect_test(g.load_game_from_disk(false),"Manual reload must succeed"):return
- if not expect_test(g.state.cards==17,"Reload must restore saved Cards"):return
- g.confirm_load_game();await verify(g)
- g.show_settings();await verify(g)
  var reset_found:=false
+ var slot_controls:=0
  for child in g.body.get_children():
-  if child is Button and "Xóa dữ liệu game" in child.text:reset_found=true
- if not expect_test(reset_found,"Settings must expose Reset data button"):return
+  if child is Button and "Reset phiên hiện tại" in child.text:reset_found=true
+  if child is HBoxContainer:slot_controls+=1
+ if not expect_test(reset_found,"Settings must expose Reset current session button"):return
+ if not expect_test(slot_controls>=3,"Settings must expose three manual save slots"):return
+ var Saves=preload("res://game/scripts/journey_save_manager.gd")
+ Saves.remove_all_v4()
+ g.state.cards=17
+ if not expect_test(Saves.write_slot(1,g.state.to_dict(),g.current_save_context(),123456),"Manual slot save must succeed"):return
+ g.state.cards=1
+ g.load_manual_slot(1)
+ if not expect_test(g.state.cards==17,"Loading slot must restore saved Cards"):return
+ g.show_load_slot_confirm(1);await verify(g)
+ g.show_settings();await verify(g)
  g.show_reset_confirm();await verify(g)
+ Saves.remove_all_v4()
  g.show_farm();await verify(g)
  g.show_places();await verify(g)
  for level in [1,2,3,4]:
