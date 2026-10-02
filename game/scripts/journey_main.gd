@@ -797,6 +797,15 @@ func setup_people()->void:
  {"id":"clara","name":"Clara","role":"Nhân viên ngân hàng","relation":"Người giữ thẻ tiết kiệm cho Momo.","place":"Ngân hàng (Bank)","at":Vector2(810,264),"door":Vector2(810,250),"exit":Vector2(810,305),"sprite":2,"level":3},
  {"id":"noah","name":"Noah","role":"Người câu cá","relation":"Bạn dạy Momo câu cá.","place":"Bến câu (Pier)","at":Vector2(1340,781),"door":Vector2(1310,778),"exit":Vector2(1310,833),"sprite":1,"level":3}]
  for n in npc_data:
+  var door_world:Vector2=nav.walkable_near_any_level(Vector2(n.door)*2.0,260.0)
+  if door_world.is_finite():n.door=door_world/2.0
+  if n.has("exit"):
+   var exit_world:Vector2=nav.walkable_near_any_level(Vector2(n.exit)*2.0,260.0)
+   if exit_world.is_finite():n.exit=exit_world/2.0
+  if n.has("delivery"):
+   var delivery_world:Vector2=nav.walkable_near_any_level(Vector2(n.delivery)*2.0,260.0)
+   if delivery_world.is_finite():n.delivery=delivery_world/2.0
+ for n in npc_data:
   if n.id!="home":
    var node:=Node2D.new();var v=art.animated("npcs",{"idle":[n.sprite,n.sprite+3]},62.0);node.add_child(v);v.play("idle")
    var label:=Label.new();label.text=n.name+"\n"+n.role;label.position=Vector2(-65,-105);label.add_theme_font_size_override("font_size",16)
