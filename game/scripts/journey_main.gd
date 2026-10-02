@@ -49,6 +49,8 @@ var room_hint:Label
 var room_npc:Node2D
 var room_target:=Vector2.ZERO
 var room_has_target:=false
+var room_route:=PackedVector2Array()
+var room_pending_action:=""
 var command_buttons:Array[Button]=[]
 var current_room:=""
 var world_player_position:=Vector2.ZERO
@@ -162,7 +164,7 @@ func build_ui()->void:
  room_layer.layer=2;layer.layer=3
  interior=Room.new();room_layer.add_child(interior);interior.hide()
  room_ui=Control.new();room_ui.theme=ui.theme;room_ui.mouse_filter=Control.MOUSE_FILTER_IGNORE;room_ui.z_index=30;room_layer.add_child(room_ui);room_ui.hide()
- room_hint=Label.new();room_hint.position=Vector2(480,505);room_hint.custom_minimum_size=Vector2(320,42);room_hint.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
+ room_hint=Label.new();room_hint.position=Vector2(20,552);room_hint.custom_minimum_size=Vector2(480,42);room_hint.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER;room_hint.add_theme_font_size_override("font_size",16);room_hint.mouse_filter=Control.MOUSE_FILTER_IGNORE
  room_hint.add_theme_stylebox_override("normal",Style.box("fff0c9","738b53",10));room_ui.add_child(room_hint)
 func make_button(parent:Node,text:String,action:Callable,height:int=42)->Button:
  var b:=Button.new();b.text=text;b.custom_minimum_size.y=height;b.pressed.connect(action);parent.add_child(b);return b
@@ -181,6 +183,7 @@ func rich_line(text:String,height:int=58)->RichTextLabel:
 func open_dialog(id:String,title:String)->void:
  if not state.difficulty_chosen and id!="difficulty":return
  screen=id;fishing_running=false;player.stop();pending_npc="";pending_door=""
+ room_has_target=false;room_route.clear();room_pending_action=""
  for c in body.get_children():body.remove_child(c);c.queue_free()
  title_label.text=title;feedback.text="";feedback.modulate=Color.WHITE;close_button.disabled=false
  dialog.show()
@@ -281,14 +284,14 @@ func _unhandled_input(event:InputEvent)->void:
    if Rect2(data.exit_zone).has_point(point):
     leave_room()
     return
+   if room_npc!=null and point.distance_to(room_npc.position-Vector2(0,35))<55:
+    set_room_target(room_npc.position+Vector2(-65,0),"talk")
+    return
    for obj in data.objects:
-    if Rect2(obj.rect).grow(12).has_point(point):
-     room_action(str(obj.action))
+    if Rect2(obj.rect).has_point(point):
+     set_room_target(obj.approach,str(obj.action))
      return
-   var walk_area:Rect2=data.get("walk_area",data.floor_rect)
-   if walk_area.has_point(point):
-    room_target=interior.safe_room_point(point,18.0)
-    room_has_target=interior.room_point_walkable(room_target,18.0)
+   if Rect2(data.floor_rect).has_point(point):set_room_target(point)
   return
  if not state.onboarded or dialog.visible or state.delivery_active:return
  if event is InputEventMouseButton and event.pressed:
@@ -679,8 +682,7 @@ func enter_room(id:String)->void:
  room_has_target=false
  map_panel.hide()
  hint.hide()
- for b in command_buttons:
-  b.visible=b.text in ["Farm","Letters","Settings","Tasks","Map","? Help"]
+ layout_room_toolbar(true)
  for c in room_ui.get_children():
   if c!=room_hint:c.queue_free()
  room_hint.show()
@@ -693,7 +695,9 @@ func enter_room(id:String)->void:
   player.reparent(room_layer)
  var camera:Camera2D=player.get_node("Camera2D")
  camera.enabled=false
- player.position=interior.safe_room_point(Vector2(640,500),18.0)
+ player.set_physics_process(false)
+ room_route.clear();room_pending_action=""
+ player.position=interior.safe_room_point(Vector2(640,480),18.0)
  player.show()
  spawn_room_npc(id)
  tip_once("room","Nhấn Esc để ra ngoài.")
@@ -727,8 +731,10 @@ func leave_room()->void:
   player.global_position=exit_pt
  world_player_position=player.global_position
  player.locked=not state.onboarded or state.delivery_active
+ player.set_physics_process(true)
+ room_route.clear();room_pending_action=""
  hint.show()
- for b in command_buttons:b.show()
+ layout_room_toolbar(false)
  get_viewport().gui_release_focus()
 
 func safe_walkable_near(pt:Vector2)->Vector2:
@@ -737,34 +743,60 @@ func safe_walkable_near(pt:Vector2)->Vector2:
 func has_walkable_step(from:Vector2,toward:Vector2=Vector2.INF)->bool:
  return nav.has_walkable_step(from,toward)
 
+func layout_room_toolbar(inside:bool)->void:
+ var index:=0
+ for b in command_buttons:
+  b.visible=not inside or b.text!="Learn"
+  if not b.visible:continue
+  b.position=Vector2(100+index*180,620) if inside else Vector2(18+index*110,610)
+  b.size=Vector2(170,78) if inside else Vector2(100,72)
+  index+=1
+
+func set_room_target(point:Vector2,action:String="")->void:
+ room_pending_action=action
+ room_target=interior.safe_room_point(point)
+ room_route=interior.find_room_path(player.position,room_target)
+ room_has_target=not room_route.is_empty()
+ if not room_has_target:room_pending_action="";notify("No clear path. Try another spot.")
+
 func process_room_movement(delta:float)->void:
- if current_room.is_empty():return
+ if current_room.is_empty() or dialog.visible:return
+ var previous:Vector2=player.position
  var move:Vector2=Input.get_vector("move_left","move_right","move_up","move_down")
- var motion:=Vector2.ZERO
+ var budget:=260.0*minf(delta,0.05)
  if move.length_squared()>0.01:
-  room_has_target=false
-  motion=move.normalized()*260.0*minf(delta,0.05)
+  room_has_target=false;room_route.clear();room_pending_action=""
+  var motion:=move.normalized()*budget
+  for axis in [Vector2(motion.x,0),Vector2(0,motion.y)]:
+   var target:Vector2=player.position+axis
+   if interior.can_travel(player.position,target):player.position=target
  elif room_has_target:
-  if not interior.room_point_walkable(room_target,18.0):
-   room_target=interior.safe_room_point(room_target,18.0)
-  var distance:float=player.position.distance_to(room_target)
-  if distance<5.0:
+  if room_route.is_empty():room_route=interior.find_room_path(player.position,room_target)
+  while budget>0.0 and not room_route.is_empty():
+   var next:Vector2=room_route[0]
+   var distance:float=player.position.distance_to(next)
+   var step:float=minf(budget,distance)
+   var target:Vector2=player.position.move_toward(next,step)
+   if not interior.can_travel(player.position,target):
+    room_route.clear();room_pending_action="";break
+   player.position=target;budget-=step
+   if distance<=step+0.01:room_route.remove_at(0)
+  if room_route.is_empty():
    room_has_target=false
-  else:
-   motion=player.position.direction_to(room_target)*minf(260.0*minf(delta,0.05),distance)
- if motion!=Vector2.ZERO:
-  # Resolve each axis separately so Momo slides along furniture instead of
-  # tunnelling through a desk/cabinet on diagonal input.
-  var x_step:=Vector2(player.position.x+motion.x,player.position.y)
-  if interior.room_point_walkable(x_step,18.0):
-   player.position=x_step
-  var y_step:=Vector2(player.position.x,player.position.y+motion.y)
-  if interior.room_point_walkable(y_step,18.0):
-   player.position=y_step
+   var action:=room_pending_action;room_pending_action=""
+   if not action.is_empty():
+    if action=="talk":interact_npc(current_room)
+    else:room_action(action)
+ var motion:Vector2=player.position-previous
+ if motion.length_squared()>0.01:
+  player.direction=("right" if motion.x>0 else "left") if absf(motion.x)>absf(motion.y) else ("down" if motion.y>0 else "up")
+  player.visual.play("walk_"+player.direction)
+ else:player.visual.play("idle_"+player.direction)
  update_room_hint()
 
 func clear_room_npc()->void:
  if room_npc!=null and is_instance_valid(room_npc):
+  room_npc.hide()
   room_npc.queue_free()
  room_npc=null
 
@@ -775,15 +807,16 @@ func spawn_room_npc(id:String)->void:
  if n.is_empty():return
  var data:Dictionary=interior.room_data(id)
  room_npc=Node2D.new()
- room_npc.position=data.get("npc_pos",Vector2(1030,455))
+ room_npc.position=interior.safe_room_point(data.get("npc_pos",Vector2(1030,455)))
  room_npc.z_index=int(room_npc.position.y)
  var sprite=art.animated("npcs",{"idle":[int(n.sprite),int(n.sprite)+3]},62.0)
  sprite.play("idle")
  room_npc.add_child(sprite)
  var label:=Label.new()
- label.text=str(n.name)
- label.position=Vector2(-70,-100)
- label.size=Vector2(140,30)
+ label.text=str(n.name)+" • "+str(n.role)
+ label.position=Vector2(-115,-100)
+ label.size=Vector2(230,30)
+ label.mouse_filter=Control.MOUSE_FILTER_IGNORE
  label.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER
  label.add_theme_font_size_override("font_size",16)
  label.add_theme_color_override("font_color",Color("342b24"))
@@ -793,15 +826,10 @@ func spawn_room_npc(id:String)->void:
 
 func nearest_room_object()->Dictionary:
  if current_room.is_empty():return {}
- var data:Dictionary=interior.room_data(current_room)
- var best:Dictionary={}
- var best_distance:=100.0
- for obj in data.objects:
-  var d:float=player.position.distance_to(Rect2(obj.rect).get_center())
-  if d<best_distance:
-   best_distance=d
-   best=obj
- return best
+ return interior.interaction_at(player.position)
+
+func near_room_npc()->bool:
+ return room_npc!=null and player.position.distance_to(room_npc.position)<85.0
 
 func update_room_hint()->void:
  if not interior.visible:return
@@ -810,7 +838,9 @@ func update_room_hint()->void:
   room_hint.text="[E] Ra ngoài"
   return
  var obj:=nearest_room_object()
- room_hint.text="[E] "+str(obj.label) if not obj.is_empty() else "WASD / mũi tên hoặc bấm sàn để di chuyển"
+ if not obj.is_empty():room_hint.text="[E] "+str(obj.label)
+ elif near_room_npc():room_hint.text="[E] Talk to "+str(npc_by_id(current_room).name)
+ else:room_hint.text="Move: WASD / arrows / click • Interact: E"
 
 func room_interact()->void:
  if current_room.is_empty():return
@@ -820,9 +850,11 @@ func room_interact()->void:
   return
  var obj:=nearest_room_object()
  if not obj.is_empty():room_action(str(obj.action))
+ elif near_room_npc():interact_npc(current_room)
 
 func room_action(action:String)->void:
  room_has_target=false
+ room_route.clear();room_pending_action=""
  match action:
   "learn":open_learning()
   "writing":show_writing()

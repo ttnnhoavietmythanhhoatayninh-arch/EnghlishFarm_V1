@@ -1,0 +1,20 @@
+Godot Engine v4.3.stable.official.77dcf97d8 - https://godotengine.org
+
+ERROR: Failed decoding WebP image.
+   at: webp_load_image_from_buffer (modules/webp/webp_common.cpp:176)
+ERROR: Error loading image: res://game/assets/v4/rooms/06-garden-shed.webp
+   at: load_image (core/io/image_loader.cpp:101)
+ERROR: Error importing 'res://game/assets/v4/rooms/06-garden-shed.webp'.
+   at: _reimport_file (editor/editor_file_system.cpp:2607)
+ERROR: Failed decoding WebP image.
+   at: webp_load_image_from_buffer (modules/webp/webp_common.cpp:176)
+ERROR: Error loading image: res://game/assets/v4/rooms/05-bank.webp
+   at: load_image (core/io/image_loader.cpp:101)
+ERROR: Error importing 'res://game/assets/v4/rooms/05-bank.webp'.
+   at: _reimport_file (editor/editor_file_system.cpp:2607)
+SCRIPT ERROR: Parse Error: Cannot infer the type of "candidate" variable because the value doesn't have a set type.
+          at: GDScript::reload (res://game/scripts/journey_room.gd:159)
+SCRIPT ERROR: Compile Error: 
+          at: GDScript::reload (res://game/scripts/journey_main.gd:-1)
+ERROR: Failed to load script "res://game/scripts/journey_main.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript.cpp:2936)

@@ -1,6 +1,6 @@
 extends "res://tests/test_support.gd"
 
-const IMAGE_ROOMS=["home","lily","emma","ben","clara","tom","noah"]
+const IMAGE_ROOMS=["home","lily","emma","ben","clara","tom","noah","mia"]
 const EXPECTED_ACTIONS={
  "home":["learn","shop"],
  "lily":["vocabulary","reading","places"],
@@ -8,7 +8,8 @@ const EXPECTED_ACTIONS={
  "ben":["repair","upgrade"],
  "clara":["bank","balance"],
  "tom":["farm","farm_help"],
- "noah":["fishing","rewards"]
+ "noah":["fishing","rewards"],
+ "mia":["mia_order","shop"]
 }
 
 func _initialize()->void:
@@ -53,6 +54,7 @@ func run()->void:
   for action in required:
    if not expect_test(action in actual,id+": missing interaction action "+str(action)):return
 
+  if not expect_test(g.interior.room_background(data)!=null,id+": background must decode, not just exist"):return
   g.enter_room(id)
   await process_frame
   if not expect_test(g.current_room==id,id+": room opens"):return
@@ -76,9 +78,9 @@ func run()->void:
   await process_frame
   if not expect_test(g.room_npc==null,id+": room NPC is cleared on exit"):return
 
- # Mia remains functional even without a supplied V4 PNG.
+ # Mia has a matching dedicated market, never a copy of another room.
  var mia:Dictionary=g.interior.room_data("mia")
- if not expect_test(not mia.has("background") or str(mia.get("background","")).is_empty(),"Mia should use the V4-styled runtime market, not one of the seven mapped room images"):return
+ if not expect_test(str(mia.get("background","")).ends_with("08-market.png"),"Mia must have its own market artwork"):return
  g.state.level=2
  g.nav.unlocked_level=2
  g.enter_room("mia")

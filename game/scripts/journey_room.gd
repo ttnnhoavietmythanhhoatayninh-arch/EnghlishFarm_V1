@@ -1,21 +1,19 @@
 extends Node2D
-
-# EnglishFarm Journey V4 room runtime.
-# The seven supplied V4 room illustrations are fixed backgrounds. Momo, NPCs,
-# interaction prompts and the bottom toolbar are runtime nodes layered above them.
+# V4 backgrounds are static. Characters, prompts and toolbar remain runtime nodes.
+# Clean 640x300 crops represent source 1920x900 at a uniform 2/3 display scale.
 const IMAGE_RECT:=Rect2(0,0,1280,600)
-const DEFAULT_WALK_AREA:=Rect2(42,315,1196,260)
-const DEFAULT_EXIT:=Rect2(555,520,170,68)
-
+const DEFAULT_WALK_AREA:=Rect2(42,315,1196,275)
+const DEFAULT_EXIT:=Rect2(555,535,170,55)
+const FOOT_RADIUS:=18.0
 const ROOMS={
  "home":{
   "title":"Nhà chính",
   "background":"res://game/assets/v4/rooms/01-home.webp",
   "objects":[
-   {"id":"study","label":"Bàn học • Learn","rect":Rect2(485,188,360,180),"action":"learn"},
-   {"id":"wardrobe","label":"Tủ • Cửa hàng","rect":Rect2(910,105,235,255),"action":"shop"}
+   {"id":"study","label":"Study • Learn","rect":Rect2(475,180,365,160),"action":"learn","approach":Vector2(655,380)},
+   {"id":"wardrobe","label":"Wardrobe • Shop","rect":Rect2(880,50,230,275),"action":"shop","approach":Vector2(995,370)}
   ],
-  "blockers":[Rect2(72,145,355,235),Rect2(470,165,390,205),Rect2(900,90,255,285)],
+  "blockers":[Rect2(120,125,315,280),Rect2(468,175,375,165),Rect2(880,50,230,275)],
   "npc_pos":Vector2.ZERO,
   "walk_area":DEFAULT_WALK_AREA,"floor_rect":DEFAULT_WALK_AREA,"exit_zone":DEFAULT_EXIT
  },
@@ -23,147 +21,195 @@ const ROOMS={
   "title":"Thư viện Lily",
   "background":"res://game/assets/v4/rooms/02-library.webp",
   "objects":[
-   {"id":"shelf","label":"Kệ • Từ vựng","rect":Rect2(120,100,265,220),"action":"vocabulary"},
-   {"id":"reading","label":"Bàn • Đọc","rect":Rect2(460,195,420,190),"action":"reading"},
-   {"id":"board","label":"Bảng • Địa điểm","rect":Rect2(550,88,185,90),"action":"places"}
+   {"id":"shelf","label":"Bookshelf • Vocabulary","rect":Rect2(157,45,205,275),"action":"vocabulary","approach":Vector2(300,365)},
+   {"id":"reading","label":"Desk • Reading","rect":Rect2(510,190,265,160),"action":"reading","approach":Vector2(640,395)},
+   {"id":"board","label":"Board • Places","rect":Rect2(581,90,117,70),"action":"places","approach":Vector2(815,355)}
   ],
-  "blockers":[Rect2(115,80,275,230),Rect2(430,165,450,230),Rect2(895,80,270,230)],
-  "npc_pos":Vector2(1030,455),
+  "blockers":[Rect2(157,45,205,275),Rect2(360,135,157,156),Rect2(510,190,265,160),Rect2(766,135,155,156),Rect2(916,45,205,275)],
+  "npc_pos":Vector2(1050,440),
   "walk_area":DEFAULT_WALK_AREA,"floor_rect":DEFAULT_WALK_AREA,"exit_zone":DEFAULT_EXIT
  },
  "mia":{
-  "title":"Chợ của Mia","color_main":"d5ad72",
+  "title":"Chợ của Mia",
+  "background":"res://game/assets/v4/rooms/08-market.png",
+  "source_fraction":0.833333333333,
   "objects":[
-   {"id":"order","label":"Quầy • Đơn hàng","rect":Rect2(430,210,420,120),"action":"mia_order"},
-   {"id":"produce","label":"Sạp rau củ • Cửa hàng","rect":Rect2(205,315,230,155),"action":"shop"},
-   {"id":"goods","label":"Kệ vật phẩm • Cửa hàng","rect":Rect2(845,315,225,155),"action":"shop"}
+   {"id":"order","label":"Counter • Orders","rect":Rect2(478,195,322,140),"action":"mia_order","approach":Vector2(640,380)},
+   {"id":"produce","label":"Produce • Shop","rect":Rect2(156,76,276,257),"action":"shop","approach":Vector2(300,380)},
+   {"id":"goods","label":"Supplies • Shop","rect":Rect2(843,76,266,257),"action":"shop","approach":Vector2(970,380)}
   ],
-  "blockers":[Rect2(415,190,450,160),Rect2(190,295,260,190),Rect2(830,295,255,190)],
-  "npc_pos":Vector2(1020,445),
-  "walk_area":Rect2(120,330,1040,245),"floor_rect":Rect2(120,330,1040,245),"exit_zone":DEFAULT_EXIT
+  "blockers":[Rect2(478,190,322,145),Rect2(156,76,276,257),Rect2(843,76,266,257)],
+  "npc_pos":Vector2(1100,450),
+  "walk_area":DEFAULT_WALK_AREA,"floor_rect":DEFAULT_WALK_AREA,"exit_zone":DEFAULT_EXIT
  },
  "emma":{
   "title":"Bưu điện Emma",
   "background":"res://game/assets/v4/rooms/03-post-office.webp",
   "objects":[
-   {"id":"mailbox","label":"Hòm thư • Gửi thư","rect":Rect2(85,125,165,235),"action":"writing"},
-   {"id":"desk","label":"Bàn • Bài mẫu","rect":Rect2(365,155,350,205),"action":"writing_lesson"}
+   {"id":"mailbox","label":"Mailbox • Send a letter","rect":Rect2(166,110,154,205),"action":"writing","approach":Vector2(250,360)},
+   {"id":"desk","label":"Desk • Writing lesson","rect":Rect2(488,180,307,172),"action":"writing_lesson","approach":Vector2(645,397)},
+   {"id":"letters","label":"Letters • Examples","rect":Rect2(868,75,237,246),"action":"writing_lesson","approach":Vector2(965,365)}
   ],
-  "blockers":[Rect2(72,115,190,250),Rect2(345,140,390,225),Rect2(790,92,270,275)],
-  "npc_pos":Vector2(1050,450),
+  "blockers":[Rect2(166,110,154,205),Rect2(330,145,92,145),Rect2(488,180,307,172),Rect2(868,75,237,246)],
+  "npc_pos":Vector2(1040,445),
   "walk_area":DEFAULT_WALK_AREA,"floor_rect":DEFAULT_WALK_AREA,"exit_zone":DEFAULT_EXIT
  },
  "ben":{
   "title":"Xưởng của Ben",
   "background":"res://game/assets/v4/rooms/04-workshop.webp",
   "objects":[
-   {"id":"wood","label":"Gỗ + dụng cụ • Sửa nhà","rect":Rect2(95,110,310,245),"action":"repair"},
-   {"id":"upgrade","label":"Bàn thợ • Nâng cấp","rect":Rect2(455,160,430,215),"action":"upgrade"}
+   {"id":"wood","label":"Wood • Repair home","rect":Rect2(156,76,271,255),"action":"repair","approach":Vector2(310,375)},
+   {"id":"upgrade","label":"Workbench • Upgrade","rect":Rect2(440,170,370,185),"action":"upgrade","approach":Vector2(625,400)},
+   {"id":"tools","label":"Tools • Repair home","rect":Rect2(819,60,255,164),"action":"repair","approach":Vector2(915,375)}
   ],
-  "blockers":[Rect2(85,95,330,270),Rect2(445,145,450,240),Rect2(920,95,245,250)],
-  "npc_pos":Vector2(1045,455),
+  "blockers":[Rect2(156,76,271,255),Rect2(440,170,370,185),Rect2(810,248,73,90),Rect2(925,212,200,122)],
+  "npc_pos":Vector2(1070,450),
   "walk_area":DEFAULT_WALK_AREA,"floor_rect":DEFAULT_WALK_AREA,"exit_zone":DEFAULT_EXIT
  },
  "clara":{
   "title":"Ngân hàng Clara",
-  "background":"res://game/assets/v4/rooms/05-bank.webp",
+  "background":"res://game/assets/v4/rooms/05-bank.png",
+  "source_fraction":0.833333333333,
   "objects":[
-   {"id":"counter","label":"Quầy • Gửi/Rút","rect":Rect2(350,125,485,235),"action":"bank"},
-   {"id":"safe","label":"Két sắt • Xem số dư","rect":Rect2(900,115,245,240),"action":"balance"}
+   {"id":"counter","label":"Counter • Deposit / Withdraw","rect":Rect2(438,210,419,157),"action":"bank","approach":Vector2(640,410)},
+   {"id":"safe","label":"Safe • Balance","rect":Rect2(890,72,230,255),"action":"balance","approach":Vector2(985,375)}
   ],
-  "blockers":[Rect2(65,110,270,235),Rect2(345,110,500,255),Rect2(895,105,255,255)],
-  "npc_pos":Vector2(1050,455),
+  "blockers":[Rect2(152,72,275,263),Rect2(438,75,419,292),Rect2(890,72,230,255)],
+  "npc_pos":Vector2(1075,450),
   "walk_area":DEFAULT_WALK_AREA,"floor_rect":DEFAULT_WALK_AREA,"exit_zone":DEFAULT_EXIT
  },
  "tom":{
   "title":"Nhà vườn Tom",
-  "background":"res://game/assets/v4/rooms/06-garden-shed.webp",
+  "background":"res://game/assets/v4/rooms/06-garden-shed.png",
+  "source_fraction":0.833333333333,
   "objects":[
-   {"id":"seeds","label":"Hạt + chậu • Mở Farm","rect":Rect2(80,105,310,250),"action":"farm"},
-   {"id":"tools","label":"Dụng cụ • Hướng dẫn","rect":Rect2(460,145,415,220),"action":"farm_help"}
+   {"id":"seeds","label":"Seeds and pots • Farm","rect":Rect2(155,75,280,256),"action":"farm","approach":Vector2(300,375)},
+   {"id":"tools","label":"Tools • Farming guide","rect":Rect2(495,60,300,140),"action":"farm_help","approach":Vector2(650,385)},
+   {"id":"plants","label":"Plants • Farm","rect":Rect2(870,135,255,185),"action":"farm","approach":Vector2(975,365)}
   ],
-  "blockers":[Rect2(75,95,325,270),Rect2(450,140,435,235),Rect2(900,120,255,235)],
-  "npc_pos":Vector2(1040,455),
+  "blockers":[Rect2(155,75,280,256),Rect2(475,170,348,165),Rect2(870,135,255,185)],
+  "npc_pos":Vector2(1070,440),
   "walk_area":DEFAULT_WALK_AREA,"floor_rect":DEFAULT_WALK_AREA,"exit_zone":DEFAULT_EXIT
  },
  "noah":{
   "title":"Bến tàu Noah",
   "background":"res://game/assets/v4/rooms/07-pier-hut.webp",
   "objects":[
-   {"id":"rods","label":"Cần câu • Câu cá","rect":Rect2(95,105,300,250),"action":"fishing"},
-   {"id":"reward_box","label":"Thùng • Xem thưởng","rect":Rect2(865,300,235,150),"action":"rewards"}
+   {"id":"rods","label":"Fishing rods • Fish","rect":Rect2(173,65,147,235),"action":"fishing","approach":Vector2(280,350)},
+   {"id":"reward_box","label":"Crates • Rewards","rect":Rect2(783,235,143,95),"action":"rewards","approach":Vector2(870,380)}
   ],
-  "blockers":[Rect2(90,95,315,270),Rect2(445,145,440,245),Rect2(850,155,265,210)],
-  "npc_pos":Vector2(1050,455),
+  "blockers":[Rect2(173,65,147,235),Rect2(322,180,135,132),Rect2(478,180,285,172),Rect2(783,235,143,95)],
+  "npc_pos":Vector2(1050,440),
   "walk_area":DEFAULT_WALK_AREA,"floor_rect":DEFAULT_WALK_AREA,"exit_zone":DEFAULT_EXIT
- }
+ },
 }
 
 var kind:="home"
 var upgraded:=false
 var _background_cache:Dictionary={}
+var _grids:Dictionary={}
 
 func room_data(id:String=kind)->Dictionary:
  return ROOMS.get(id,ROOMS.home)
 
 func _draw()->void:
- var data:Dictionary=room_data(kind)
+ var data:Dictionary=room_data()
  var background:=room_background(data)
  if background!=null:
-  # Runtime texture is a cleaned V4 image: no baked Momo/NPC, leave button or toolbar.
-  draw_texture_rect(background,IMAGE_RECT,false)
+  var source:=Rect2(Vector2.ZERO,background.get_size())
+  source.size.y*=float(data.get("source_fraction",1.0))
+  draw_texture_rect_region(background,IMAGE_RECT,source)
   draw_rect(Rect2(0,600,1280,120),Color("526c5a"))
-  return
- draw_runtime_market()
- draw_exit(Rect2(data.exit_zone))
+ else:
+  draw_runtime_market()
 
 func room_background(data:Dictionary)->Texture2D:
  var path:=str(data.get("background",""))
- if path.is_empty() or not ResourceLoader.exists(path):
-  return null
- if not _background_cache.has(path):
-  _background_cache[path]=load(path)
+ if path.is_empty():return null
+ if not _background_cache.has(path):_background_cache[path]=load(path)
  return _background_cache[path] as Texture2D
 
-func room_point_walkable(point:Vector2,radius:float=18.0)->bool:
- var data:Dictionary=room_data(kind)
- var walk_area:Rect2=data.get("walk_area",data.get("floor_rect",DEFAULT_WALK_AREA))
- var safe_area:=walk_area.grow(-radius)
- if safe_area.size.x<=0.0 or safe_area.size.y<=0.0 or not safe_area.has_point(point):
-  return false
- for raw in data.get("blockers",[]):
+func room_point_walkable(point:Vector2,radius:float=FOOT_RADIUS)->bool:
+ if not point.is_finite():return false
+ var data:Dictionary=room_data()
+ var area:Rect2=data.walk_area
+ if not area.grow(-radius).has_point(point):return false
+ # Tapered side walls: prevent walking across windows and skirting boards.
+ var left:float=lerpf(125.0,42.0,clampf((point.y-315.0)/275.0,0.0,1.0))
+ if point.x<left+radius or point.x>1280.0-left-radius:return false
+ for raw in data.blockers:
   var blocker:Rect2=raw
-  if blocker.grow(radius).has_point(point):
-   return false
+  if blocker.grow(radius).has_point(point):return false
  return true
 
-func safe_room_point(point:Vector2,radius:float=18.0)->Vector2:
- if room_point_walkable(point,radius):
-  return point
- var data:Dictionary=room_data(kind)
- var walk_area:Rect2=data.get("walk_area",data.get("floor_rect",DEFAULT_WALK_AREA))
- var safe_area:=walk_area.grow(-radius)
- var anchor:=Vector2(
-  clampf(point.x,safe_area.position.x,safe_area.end.x),
-  clampf(point.y,safe_area.position.y,safe_area.end.y)
- )
- if room_point_walkable(anchor,radius):
-  return anchor
- var directions=[
-  Vector2.RIGHT,Vector2.LEFT,Vector2.UP,Vector2.DOWN,
-  Vector2(1,1).normalized(),Vector2(-1,1).normalized(),
-  Vector2(1,-1).normalized(),Vector2(-1,-1).normalized()
- ]
- for distance in [8.0,16.0,24.0,40.0,64.0,96.0,128.0,180.0,240.0]:
-  for direction in directions:
-   var candidate:=anchor+direction*distance
-   if room_point_walkable(candidate,radius):
-    return candidate
- var fallback:=Vector2(640,500)
- if room_point_walkable(fallback,radius):
-  return fallback
- push_warning("Không tìm thấy điểm đi an toàn trong phòng %s gần %s"%[kind,point])
+func can_travel(from:Vector2,to:Vector2)->bool:
+ var steps:int=maxi(1,ceili(from.distance_to(to)/4.0))
+ for i in range(steps+1):
+  if not room_point_walkable(from.lerp(to,float(i)/steps)):return false
+ return true
+
+func safe_room_point(point:Vector2,radius:float=FOOT_RADIUS)->Vector2:
+ if room_point_walkable(point,radius):return point
+ var best:=Vector2.INF
+ var distance:=INF
+ for y in range(335,571,10):
+  for x in range(60,1221,10):
+   var candidate:=Vector2(x,y)
+   var d:float=candidate.distance_squared_to(point)
+   if d<distance and room_point_walkable(candidate,radius):
+    best=candidate;distance=d
+ if best.is_finite():return best
+ push_warning("No safe point in room: "+kind)
  return point
+
+func room_grid()->AStarGrid2D:
+ if _grids.has(kind):return _grids[kind]
+ var grid:=AStarGrid2D.new()
+ grid.region=Rect2i(0,0,65,31)
+ grid.cell_size=Vector2(20,20)
+ grid.diagonal_mode=AStarGrid2D.DIAGONAL_MODE_NEVER
+ grid.update()
+ for y in range(31):
+  for x in range(65):grid.set_point_solid(Vector2i(x,y),not room_point_walkable(Vector2(x*20,y*20)))
+ _grids[kind]=grid
+ return grid
+
+func closest_grid_point(point:Vector2,grid:AStarGrid2D)->Vector2i:
+ var best:=Vector2i(-1,-1)
+ var distance:=INF
+ for y in range(16,29):
+  for x in range(3,62):
+   var id:=Vector2i(x,y)
+   var pos:=Vector2(id)*20.0
+   var d:float=point.distance_squared_to(pos)
+   if d<distance and not grid.is_point_solid(id) and can_travel(point,pos):best=id;distance=d
+ return best
+
+func find_room_path(from:Vector2,to:Vector2)->PackedVector2Array:
+ var goal:=safe_room_point(to)
+ if can_travel(from,goal):return PackedVector2Array([goal])
+ var grid:=room_grid()
+ var start:=closest_grid_point(from,grid)
+ var end:=closest_grid_point(goal,grid)
+ if start.x<0 or end.x<0:return PackedVector2Array()
+ var raw:PackedVector2Array=grid.get_point_path(start,end)
+ if raw.is_empty():return raw
+ raw.append(goal)
+ # Validate every segment, including the connection from the actual position.
+ var previous:=from
+ for point in raw:
+  if not can_travel(previous,point):return PackedVector2Array()
+  previous=point
+ return raw
+
+func interaction_at(point:Vector2)->Dictionary:
+ var best:Dictionary={}
+ var distance:=55.0
+ for obj in room_data().objects:
+  var approach:Vector2=obj.approach
+  var d:float=point.distance_to(approach)
+  if d<distance and can_travel(point,approach):best=obj;distance=d
+ return best
 
 func draw_runtime_market()->void:
  # Mia has no supplied room PNG. Keep a V4-style runtime market while preserving

@@ -1,0 +1,42 @@
+[
+  {
+    "path": "game/assets/v4/rooms/01-home.webp",
+    "bytes": 9700,
+    "sha256": "ab1af429fcaa677ff15c1f29908973fd3981d7d791b78ecb53bf492dd37fcf10"
+  },
+  {
+    "path": "game/assets/v4/rooms/02-library.webp",
+    "bytes": 13646,
+    "sha256": "9afaca65984fdecd024394d19c68dea218e1a52df5de166f93756755d39e3099"
+  },
+  {
+    "path": "game/assets/v4/rooms/03-post-office.webp",
+    "bytes": 11416,
+    "sha256": "b50771bb5fcc50d09e5c49ce4132c4c775d63fc5b45f57ec95a41a35880683b7"
+  },
+  {
+    "path": "game/assets/v4/rooms/04-workshop.webp",
+    "bytes": 11192,
+    "sha256": "475953d7d64fa6e0e05de94a5a2cd053beae571d2a3b2eab0cda3019c765fc92"
+  },
+  {
+    "path": "game/assets/v4/rooms/05-bank.png",
+    "bytes": 1430847,
+    "sha256": "07e87e93ba6f9fa6e9876759b40321f2b093edd1d27420a270b94f96a8f559d9"
+  },
+  {
+    "path": "game/assets/v4/rooms/06-garden-shed.png",
+    "bytes": 1489768,
+    "sha256": "e8e64d26256826516db833c40ed03a8919c28cbc57a7961fcf5b1413f07f060a"
+  },
+  {
+    "path": "game/assets/v4/rooms/07-pier-hut.webp",
+    "bytes": 12442,
+    "sha256": "85b3a6279950a67021f37a0f26564ccb01725dfcbde57cf62a873c7bd201df10"
+  },
+  {
+    "path": "game/assets/v4/rooms/08-market.png",
+    "bytes": 1662075,
+    "sha256": "3ca911068d3449142f560c4767c1017d14aee26b95bd9168a7861fa091a297f8"
+  }
+]
