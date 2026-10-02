@@ -209,6 +209,50 @@ func message(text:String,good:bool=true)->void:
 func notify(text:String)->void:toast.text=text;toast.show();toast_timer=6.0
 func save_game()->void:
  if persistence_enabled and not state.save_to(save_path):notify("Không lưu được. Kiểm tra dung lượng và quyền ghi trên máy.")
+
+func manual_save_game()->bool:
+ if not state.save_to(save_path):
+  message("Không thể lưu game. Hãy kiểm tra dung lượng và quyền ghi trên máy.",false)
+  return false
+ notify("Đã lưu game.")
+ message("Tiến trình hiện tại đã được lưu thành công.")
+ return true
+
+func load_game_from_disk(refresh_scene:bool=true)->bool:
+ if not FileAccess.file_exists(save_path):
+  message("Chưa có bản lưu để tải lại.",false)
+  return false
+ var loaded:=State.new()
+ if not loaded.load_from(save_path):
+  message("Bản lưu không đọc được hoặc không đúng định dạng.",false)
+  return false
+ if refresh_scene:
+  persistence_enabled=true
+  get_tree().reload_current_scene()
+  return true
+ state=loaded
+ nav.unlocked_level=state.level
+ quest_level=state.level
+ truck_route.clear()
+ if is_instance_valid(truck):truck.hide()
+ if state.delivery_active:prepare_truck_route()
+ refresh_hud()
+ update_world()
+ refresh_crops()
+ notify("Đã tải lại bản lưu.")
+ return true
+
+func confirm_load_game()->void:
+ open_dialog("load_save","Tải lại bản đã lưu?")
+ line("Tiến trình hiện tại trên màn hình sẽ được thay bằng dữ liệu trong bản lưu gần nhất.",18)
+ line("Game có tự lưu, nhưng nút này giúp bạn chủ động quay lại dữ liệu đã lưu trên máy.",16)
+ var row:=HBoxContainer.new()
+ row.add_theme_constant_override("separation",12)
+ body.add_child(row)
+ var cancel:=make_button(row,"Hủy",show_settings,48)
+ cancel.custom_minimum_size.x=180
+ var load:=make_button(row,"Tải lại bản đã lưu",func():load_game_from_disk(true),48)
+ load.custom_minimum_size.x=260
 func refresh_hud()->void:
  hud.text="Lv.%d • %d/3 việc  |  Cards %d  |  Powers %d"%[state.level,state.level_points(),state.cards,state.powers]
  if state.level==5:hud.text="Lv.5 • Hoàn thành chương thử  | Cards %d | Powers %d"%[state.cards,state.powers]
@@ -562,7 +606,14 @@ func show_settings()->void:
   for i in range(6):
    if state.crop_status(i,crop_time())=="wilted":state.plots[i]={}
   changed();refresh_crops();message("Đã dọn cây héo; từ đã học vẫn giữ nguyên."))
- line("Dữ liệu được tự lưu trên máy. Không cần tài khoản.",16)
+ line("Dữ liệu được tự lưu trên máy. Bạn cũng có thể lưu hoặc tải lại thủ công.",16)
+ var save_row:=HBoxContainer.new()
+ save_row.add_theme_constant_override("separation",12)
+ body.add_child(save_row)
+ var save_now:=make_button(save_row,"Lưu game ngay",manual_save_game,46)
+ save_now.custom_minimum_size.x=200
+ var load_saved:=make_button(save_row,"Tải lại bản đã lưu",confirm_load_game,46)
+ load_saved.custom_minimum_size.x=240
  make_button(body,"Xóa dữ liệu game • Reset",show_reset_confirm,46)
 
 func show_reset_confirm()->void:
