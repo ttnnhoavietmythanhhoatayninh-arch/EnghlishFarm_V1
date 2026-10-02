@@ -1177,8 +1177,8 @@ func prepare_truck_route()->bool:
   state.delivery_active=false
   truck_route.clear()
   return false
- var start_world:=nav.safe_walkable_near(Vector2(220,680)*2,260.0)
- var delivery_world:=nav.safe_walkable_near(Vector2(mia.get("delivery",mia.at))*2,260.0)
+ var start_world:Vector2=nav.safe_walkable_near(Vector2(220,680)*2,260.0)
+ var delivery_world:Vector2=nav.safe_walkable_near(Vector2(mia.get("delivery",mia.at))*2,260.0)
  if not start_world.is_finite() or not delivery_world.is_finite():
   state.delivery_active=false
   truck_route.clear()
@@ -1226,7 +1226,7 @@ func tick_delivery(delta:float)->void:
   var drop_world:=Vector2(1960,1120)
   if not mia.is_empty():
    drop_world=Vector2(mia.get("delivery",mia.get("exit",mia.at)))*2
-  var safe_drop:=nav.safe_walkable_near(drop_world,260.0)
+  var safe_drop:Vector2=nav.safe_walkable_near(drop_world,260.0)
   player.global_position=safe_drop if safe_drop.is_finite() else drop_world
   world_player_position=player.global_position
   truck_route.clear()
