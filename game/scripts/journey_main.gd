@@ -1191,6 +1191,7 @@ func prepare_truck_route()->bool:
   save_game()
   notify("Xe chưa tìm được đường tới Chợ. Hàng vẫn được giữ; thử lại.")
   return false
+ truck.position=truck_route[0]
  return true
 
 func begin_delivery()->void:
