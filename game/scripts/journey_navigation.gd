@@ -41,3 +41,28 @@ func has_walkable_step(from:Vector2,toward:Vector2=Vector2.INF)->bool:
  for offset in [Vector2(24,0),Vector2(-24,0),Vector2(0,24),Vector2(0,-24)]:
   if can_travel(from,from+offset,12.0):return true
  return false
+
+
+func walkable_near_any_level(point:Vector2,max_distance:float=260.0)->Vector2:
+ if not point.is_finite():return point
+ if is_walkable(point,12.0) and has_geometric_walkable_step(point):return point
+ for radius in [5.0,15.0,30.0,50.0,80.0,120.0,180.0,240.0]:
+  if radius>max_distance:continue
+  for i in range(32):
+   var p:Vector2=point+Vector2.from_angle(TAU*i/32.0)*radius
+   if is_walkable(p,12.0) and has_geometric_walkable_step(p):return p
+ var closest:=Vector2.INF
+ var best:=max_distance+0.01
+ for cell in walkable_cells:
+  var p:Vector2=grid.get_point_position(cell)
+  var d:float=p.distance_to(point)
+  if d<best and is_walkable(p,12.0) and has_geometric_walkable_step(p):
+   closest=p
+   best=d
+ return closest if best<=max_distance else point
+
+func has_geometric_walkable_step(from:Vector2)->bool:
+ if not from.is_finite() or not is_walkable(from,12.0):return false
+ for offset in [Vector2(24,0),Vector2(-24,0),Vector2(0,24),Vector2(0,-24)]:
+  if super.can_travel(from,from+offset,12.0):return true
+ return false
