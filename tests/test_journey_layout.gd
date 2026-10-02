@@ -29,6 +29,13 @@ func run()->void:
   g.show_reading();await verify(g)
   g.show_writing_lesson();await verify(g)
  g.show_settings();await verify(g)
+ g.state.cards=17
+ if not expect_test(g.manual_save_game(),"Manual save must succeed"):return
+ g.state.cards=1
+ if not expect_test(g.load_game_from_disk(false),"Manual reload must succeed"):return
+ if not expect_test(g.state.cards==17,"Reload must restore saved Cards"):return
+ g.confirm_load_game();await verify(g)
+ g.show_settings();await verify(g)
  var reset_found:=false
  for child in g.body.get_children():
   if child is Button and "Xóa dữ liệu game" in child.text:reset_found=true
