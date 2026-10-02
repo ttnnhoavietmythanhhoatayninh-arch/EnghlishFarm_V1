@@ -791,7 +791,7 @@ func setup_people()->void:
  {"id":"home","name":"Momo","role":"Nhà của bạn","relation":"Căn nhà và khu vườn đầu tiên của bạn.","place":"Nông trại (Farm)","at":Vector2(200,690),"door":Vector2(190,680),"exit":Vector2(190,735),"sprite":0,"level":1},
  {"id":"lily","name":"Lily","role":"Thủ thư","relation":"Người hướng dẫn học tập của Momo.","place":"Thư viện (Library)","at":Vector2(365,660),"door":Vector2(438,307),"exit":Vector2(438,362),"sprite":0,"level":1},
  {"id":"tom","name":"Tom","role":"Nông dân","relation":"Hàng xóm dạy Momo chăm vườn.","place":"Khu vườn (Garden)","at":Vector2(440,640),"door":Vector2(450,650),"exit":Vector2(450,705),"sprite":1,"level":1},
- {"id":"mia","name":"Mia","role":"Chủ tiệm","relation":"Khách hàng đầu tiên của Momo.","place":"Chợ (Market)","at":Vector2(920,580),"door":Vector2(940,590),"exit":Vector2(940,645),"sprite":2,"level":2},
+ {"id":"mia","name":"Mia","role":"Chủ tiệm","relation":"Khách hàng đầu tiên của Momo.","place":"Chợ (Market)","at":Vector2(965,500),"door":Vector2(980,515),"exit":Vector2(980,560),"delivery":Vector2(980,560),"sprite":2,"level":2},
  {"id":"emma","name":"Emma","role":"Bưu tá","relation":"Bạn giúp Momo trao đổi thư từ.","place":"Bưu điện (Post Office)","at":Vector2(1090,751),"door":Vector2(1020,756),"exit":Vector2(1020,811),"sprite":0,"level":2},
  {"id":"ben","name":"Ben","role":"Thợ mộc","relation":"Người giúp Momo sửa nhà.","place":"Xưởng mộc (Workshop)","at":Vector2(275,520),"door":Vector2(250,514),"exit":Vector2(250,569),"sprite":1,"level":3},
  {"id":"clara","name":"Clara","role":"Nhân viên ngân hàng","relation":"Người giữ thẻ tiết kiệm cho Momo.","place":"Ngân hàng (Bank)","at":Vector2(810,264),"door":Vector2(810,250),"exit":Vector2(810,305),"sprite":2,"level":3},
@@ -1169,33 +1169,71 @@ func build_world_objects()->void:
   var node:=Node2D.new();node.position=pos*2;node.z_index=int(node.position.y);add_child(node);crop_nodes.append(node);crop_stages.append("")
  truck=load("res://game/scripts/journey_truck.gd").new();add_child(truck);truck.hide()
  if state.delivery_active:prepare_truck_route()
-func prepare_truck_route()->void:
+
+func prepare_truck_route()->bool:
  var mia:=npc_by_id("mia")
  if mia.is_empty():
   state.delivery_active=false
-  return
- truck_route=nav.find_path(Vector2(220,680)*2,Vector2(mia.at)*2)
+  truck_route.clear()
+  return false
+ var start_world:=nav.safe_walkable_near(Vector2(220,680)*2,260.0)
+ var delivery_world:=nav.safe_walkable_near(Vector2(mia.get("delivery",mia.at))*2,260.0)
+ if not start_world.is_finite() or not delivery_world.is_finite():
+  state.delivery_active=false
+  truck_route.clear()
+  save_game()
+  notify("Xe chưa tìm được điểm giao hàng an toàn. Hàng vẫn được giữ; thử lại.")
+  return false
+ truck_route=nav.find_path(start_world,delivery_world)
  if truck_route.is_empty():
-  state.delivery_active=false;save_game();notify("Xe chưa tìm được đường. Hàng vẫn được giữ; thử lại.")
+  state.delivery_active=false
+  save_game()
+  notify("Xe chưa tìm được đường tới Chợ. Hàng vẫn được giữ; thử lại.")
+  return false
+ return true
+
 func begin_delivery()->void:
- if not state.start_delivery():message("Nhận đơn và chuẩn bị 3 củ cà rốt trước; xe không nhận hai chuyến cùng lúc.",false);return
- player.stop();prepare_truck_route();close_dialog();changed();notify("Xe đang chở 3 cà rốt tới chợ. Thưởng nhận khi xe đến nơi.")
+ if not state.start_delivery():
+  message("Nhận đơn của Mia và chuẩn bị đủ 3 củ cà rốt trước; xe không nhận hai chuyến cùng lúc.",false)
+  return
+ player.stop()
+ if not prepare_truck_route():
+  message("Chưa thể khởi hành. 3 củ cà rốt vẫn còn nguyên trong kho.",false)
+  return
+ close_dialog()
+ changed()
+ notify("Xe đang chở 3 củ cà rốt tới Chợ. Thưởng chỉ nhận khi xe đến nơi.")
+
 func tick_delivery(delta:float)->void:
  if not state.delivery_active:return
- if truck_route.is_empty():prepare_truck_route()
- if truck_route.is_empty():return
+ if truck_route.is_empty() and not prepare_truck_route():return
  state.delivery_seconds+=delta
  var t:float=clampf(state.delivery_seconds/12.0,0,1)
  var offset:float=t*(truck_route.size()-1)
- var a:=int(floor(offset));var b:=mini(a+1,truck_route.size()-1)
- truck.position=truck_route[a].lerp(truck_route[b],offset-a);truck.z_index=int(truck.position.y)+1;truck.show()
- player.position=truck.position;player.hide()
- if state.delivery_seconds>=12:
-  var ok:bool=state.finish_delivery();truck.hide();player.show()
+ var a:=int(floor(offset))
+ var b:=mini(a+1,truck_route.size()-1)
+ truck.position=truck_route[a].lerp(truck_route[b],offset-a)
+ truck.z_index=int(truck.position.y)+1
+ truck.show()
+ player.global_position=truck.position
+ player.hide()
+ if state.delivery_seconds>=12.0:
+  var ok:bool=state.finish_delivery()
+  truck.hide()
+  player.show()
   var mia:=npc_by_id("mia")
-  player.position=(Vector2(mia.get("exit",mia.at)) if not mia.is_empty() else Vector2(980,560))*2
+  var drop_world:=Vector2(1960,1120)
+  if not mia.is_empty():
+   drop_world=Vector2(mia.get("delivery",mia.get("exit",mia.at)))*2
+  var safe_drop:=nav.safe_walkable_near(drop_world,260.0)
+  player.global_position=safe_drop if safe_drop.is_finite() else drop_world
+  world_player_position=player.global_position
+  truck_route.clear()
   changed()
-  if ok:notify("Mia đã nhận hàng! +8 cards, +5 gỗ và tình bạn. Xem Tasks để làm việc tiếp theo.")
+  if ok:
+   notify("Mia đã nhận 3 củ cà rốt! +8 Cards, +5 gỗ và +1 tình bạn. Xem Tasks để làm việc tiếp theo.")
+  else:
+   notify("Xe đã tới Chợ nhưng đơn hàng không hợp lệ. Hàng không bị trừ ngoài quy tắc giao hàng.")
 func update_world()->void:
  nav.unlocked_level=state.level
  for n in npc_data:
