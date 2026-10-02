@@ -23,14 +23,18 @@ func run()->void:
  var mia:Dictionary=g.npc_by_id("mia")
  assert(not mia.is_empty())
  assert(mia.has("delivery"),"Mia/Market must define a dedicated delivery point")
- var delivery_world:Vector2=Vector2(mia.delivery)*2
- assert(g.nav.allowed(delivery_world),"Market delivery point must be in unlocked region")
- assert(g.nav.is_walkable(delivery_world,12.0),"Market delivery point must be on walkable ground")
+ var requested_delivery:Vector2=Vector2(mia.delivery)*2
+ var delivery_world:Vector2=g.nav.safe_walkable_near(requested_delivery,260.0)
+ assert(delivery_world.is_finite(),"Market delivery point must resolve to walkable ground")
+ assert(g.nav.allowed(delivery_world),"Resolved Market delivery point must be in unlocked region")
+ assert(g.nav.is_walkable(delivery_world,12.0),"Resolved Market delivery point must be on walkable ground")
 
  assert(g.state.accept_order(),"Mia order must be accepted")
- g.prepare_truck_route()
+ assert(g.prepare_truck_route(),"Truck route preparation must succeed")
  assert(not g.truck_route.is_empty(),"Truck must have a route from farm to Market")
- assert(g.truck_route[g.truck_route.size()-1].distance_to(delivery_world)<90.0,"Truck route must end at Market delivery point")
+ assert(g.truck_route[g.truck_route.size()-1].distance_to(delivery_world)<90.0,"Truck route must end at resolved Market delivery point")
+ for i in range(1,g.truck_route.size()):
+  assert(g.nav.can_travel(g.truck_route[i-1],g.truck_route[i],8.0),"Every truck route segment must stay on the navigation road")
 
  var before_cards:int=g.state.cards
  var before_wood:int=g.state.wood
