@@ -4,7 +4,8 @@ func _initialize()->void:
  call_deferred("run")
 
 func run()->void:
- var g=load("res://game/scenes/Journey.tscn").instantiate()
+ assert(ResourceLoader.exists("res://game/assets/vehicles/carrot_delivery_truck.svg"),"Carrot truck sprite asset must exist")
+  var g=load("res://game/scenes/Journey.tscn").instantiate()
  g.persistence_enabled=false
  root.add_child(g)
  await process_frame
