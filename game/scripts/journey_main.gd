@@ -610,7 +610,7 @@ func show_vocabulary(index:int)->void:
   message("Chưa có đủ dữ liệu từ vựng cho level này.",false)
   return
  index=clampi(index,0,2)
- var session_tag:=state.difficulty+":L"+str(state.level)+":S"+str(vocab_session_index())
+ var session_tag:String=state.difficulty+":L"+str(state.level)+":S"+str(vocab_session_index())
  open_dialog("vocabulary","Vocabulary • "+current_cefr()+" • %d/3"%(index+1))
  seen_words[session_tag+":"+str(index)]=true
  var w:Dictionary=words[index]
@@ -761,7 +761,7 @@ func answer_quiz(answer:String)->void:
   show_quiz_question()
   changed()
   return
- var finished_level:=state.level
+ var finished_level:int=state.level
  if quiz_kind=="reading":
   state.unlock_seeds("reading-"+state.difficulty+"-L"+str(finished_level),3,3)
  if quiz_kind=="vocabulary":
