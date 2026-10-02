@@ -1,0 +1,1567 @@
+{
+  "meta": {
+    "version": 2,
+    "note": "Original EnglishFarm learning content. Topic progression is informed by the organisation and level progression of the user-provided English Vocabulary in Use series; wording, examples, readings and tasks are newly written for the game.",
+    "tracks": {
+      "easy": "A1–A2 progression",
+      "normal": "B1–B2 progression",
+      "hard": "C1–C2 progression"
+    },
+    "vocabulary_session_size": 3,
+    "vocabulary_rotation": "Each game-level pool contains 9 words, giving three non-overlapping Learn sessions before cycling.",
+    "writing_note": "Task 1 and Task 2 are VSTEP-style adaptations for gameplay. The uploaded Vocabulary in Use archive does not contain a VSTEP writing template source."
+  },
+  "tracks": {
+    "easy": {
+      "1": {
+        "cefr": "A1",
+        "topic": "Home and family",
+        "vocabulary": [
+          [
+            "family",
+            "gia đình",
+            "My family eats dinner together."
+          ],
+          [
+            "parent",
+            "cha hoặc mẹ",
+            "A parent helps a child."
+          ],
+          [
+            "cousin",
+            "anh/chị/em họ",
+            "My cousin visits the farm."
+          ],
+          [
+            "kitchen",
+            "nhà bếp",
+            "Momo makes tea in the kitchen."
+          ],
+          [
+            "bedroom",
+            "phòng ngủ",
+            "The bedroom is next to the bathroom."
+          ],
+          [
+            "chair",
+            "cái ghế",
+            "Please sit on the chair."
+          ],
+          [
+            "window",
+            "cửa sổ",
+            "Open the window in the morning."
+          ],
+          [
+            "clean",
+            "sạch; làm sạch",
+            "Momo cleans the table every day."
+          ],
+          [
+            "together",
+            "cùng nhau",
+            "We work together after lunch."
+          ]
+        ],
+        "reading": {
+          "title": "A Morning at Home",
+          "passage": "Momo lives in a small house near the farm. Every morning, Momo opens the window, makes breakfast in the kitchen and feeds the cat. Momo's cousin sometimes visits after school. They clean the table together before they go outside.",
+          "questions": [
+            {
+              "type": "true_false_not_given",
+              "prompt": "Momo lives near the farm.",
+              "answer": "True"
+            },
+            {
+              "type": "completion",
+              "prompt": "Momo makes breakfast in the ____.",
+              "answers": [
+                "kitchen"
+              ]
+            },
+            {
+              "type": "short_answer",
+              "prompt": "Who sometimes visits Momo after school?",
+              "answers": [
+                "cousin",
+                "Momo's cousin",
+                "his cousin",
+                "her cousin"
+              ]
+            }
+          ]
+        },
+        "writing": {
+          "task1": {
+            "title": "Friendly message",
+            "prompt": "Write a short message to your cousin. Invite them to visit your home and say what you can do together.",
+            "target": "40–60 words",
+            "template": [
+              "Hi ...",
+              "I want to invite you to ...",
+              "We can ...",
+              "See you soon,",
+              "Momo"
+            ]
+          }
+        }
+      },
+      "2": {
+        "cefr": "A1",
+        "topic": "Food and daily routines",
+        "vocabulary": [
+          [
+            "breakfast",
+            "bữa sáng",
+            "Momo eats breakfast at seven."
+          ],
+          [
+            "lunch",
+            "bữa trưa",
+            "We have lunch at school."
+          ],
+          [
+            "dinner",
+            "bữa tối",
+            "Dinner is ready at six."
+          ],
+          [
+            "hungry",
+            "đói",
+            "I am hungry after work."
+          ],
+          [
+            "thirsty",
+            "khát",
+            "Tom is thirsty after gardening."
+          ],
+          [
+            "cook",
+            "nấu ăn",
+            "Momo cooks rice for dinner."
+          ],
+          [
+            "wash",
+            "rửa",
+            "Wash the carrots before cooking."
+          ],
+          [
+            "usually",
+            "thường",
+            "I usually drink tea in the morning."
+          ],
+          [
+            "early",
+            "sớm",
+            "Emma gets up early on weekdays."
+          ]
+        ],
+        "reading": {
+          "title": "A Busy Day",
+          "passage": "Momo usually gets up early and eats breakfast before going to the garden. At noon, Momo has lunch with Tom. In the evening, Momo washes vegetables and cooks dinner. After dinner, Momo drinks water because gardening can make people thirsty.",
+          "questions": [
+            {
+              "type": "true_false_not_given",
+              "prompt": "Momo eats breakfast after going to the garden.",
+              "answer": "False"
+            },
+            {
+              "type": "completion",
+              "prompt": "At noon, Momo has lunch with ____.",
+              "answers": [
+                "Tom"
+              ]
+            },
+            {
+              "type": "short_answer",
+              "prompt": "Why does Momo drink water after dinner?",
+              "answers": [
+                "because gardening can make people thirsty",
+                "gardening can make people thirsty",
+                "because Momo is thirsty",
+                "because he is thirsty",
+                "because she is thirsty"
+              ]
+            }
+          ]
+        },
+        "writing": {
+          "task1": {
+            "title": "Daily routine",
+            "prompt": "Write to Emma about your daily routine. Mention when you get up, what you eat and one thing you do in the evening.",
+            "target": "50–70 words",
+            "template": [
+              "Hi Emma,",
+              "I usually ...",
+              "In the morning, ...",
+              "In the evening, ...",
+              "Best wishes,",
+              "Momo"
+            ]
+          }
+        }
+      },
+      "3": {
+        "cefr": "A2",
+        "topic": "Town and shopping",
+        "vocabulary": [
+          [
+            "market",
+            "chợ",
+            "Mia works at the market."
+          ],
+          [
+            "customer",
+            "khách hàng",
+            "The customer buys three carrots."
+          ],
+          [
+            "price",
+            "giá",
+            "The price is on the sign."
+          ],
+          [
+            "cash",
+            "tiền mặt",
+            "You can pay in cash."
+          ],
+          [
+            "change",
+            "tiền thối; thay đổi",
+            "Here is your change."
+          ],
+          [
+            "receipt",
+            "hóa đơn",
+            "Keep the receipt after you pay."
+          ],
+          [
+            "cheap",
+            "rẻ",
+            "These apples are cheap today."
+          ],
+          [
+            "expensive",
+            "đắt",
+            "That jacket is too expensive."
+          ],
+          [
+            "queue",
+            "hàng người chờ",
+            "There is a short queue at the shop."
+          ]
+        ],
+        "reading": {
+          "title": "At Mia's Market",
+          "passage": "Mia's market is busy on Saturday mornings. Customers compare prices before they buy fruit and vegetables. One customer pays in cash and asks for a receipt. The carrots are cheaper than the apples today, so the customer buys two bags of carrots.",
+          "questions": [
+            {
+              "type": "matching",
+              "prompt": "Match the person to the action: Who asks for a receipt?",
+              "choices": [
+                "Mia",
+                "a customer",
+                "Tom"
+              ],
+              "answer": "a customer"
+            },
+            {
+              "type": "true_false_not_given",
+              "prompt": "The apples are cheaper than the carrots.",
+              "answer": "False"
+            },
+            {
+              "type": "completion",
+              "prompt": "The customer buys two bags of ____.",
+              "answers": [
+                "carrots",
+                "carrot"
+              ]
+            }
+          ]
+        },
+        "writing": {
+          "task1": {
+            "title": "Shopping email",
+            "prompt": "Write an email to Mia asking about the price of two products and whether you can pay in cash.",
+            "target": "70–90 words",
+            "template": [
+              "Dear Mia,",
+              "I am writing to ask about ...",
+              "Could you tell me ...?",
+              "I would also like to know ...",
+              "Best wishes,",
+              "Momo"
+            ]
+          }
+        }
+      },
+      "4": {
+        "cefr": "A2",
+        "topic": "Travel and holidays",
+        "vocabulary": [
+          [
+            "ticket",
+            "vé",
+            "Keep your ticket until the end of the journey."
+          ],
+          [
+            "station",
+            "nhà ga",
+            "The bus leaves from the station."
+          ],
+          [
+            "journey",
+            "chuyến đi",
+            "The journey takes two hours."
+          ],
+          [
+            "luggage",
+            "hành lý",
+            "Her luggage is very heavy."
+          ],
+          [
+            "book",
+            "đặt chỗ",
+            "We booked a room online."
+          ],
+          [
+            "arrive",
+            "đến nơi",
+            "The train arrives at nine."
+          ],
+          [
+            "leave",
+            "rời đi",
+            "The bus leaves at eight."
+          ],
+          [
+            "delay",
+            "sự chậm trễ",
+            "The flight has a short delay."
+          ],
+          [
+            "map",
+            "bản đồ",
+            "Use the map to find the hotel."
+          ]
+        ],
+        "reading": {
+          "title": "A Short Trip",
+          "passage": "Momo books a room before travelling to a nearby town. The bus should leave at eight, but there is a thirty-minute delay. Momo uses a map to find the hotel after arriving at the station. The luggage is light, so walking to the hotel is easy.",
+          "questions": [
+            {
+              "type": "completion",
+              "prompt": "The bus has a ____-minute delay.",
+              "answers": [
+                "30",
+                "thirty"
+              ]
+            },
+            {
+              "type": "matching",
+              "prompt": "What helps Momo find the hotel?",
+              "choices": [
+                "a ticket",
+                "a map",
+                "the luggage"
+              ],
+              "answer": "a map"
+            },
+            {
+              "type": "short_answer",
+              "prompt": "Why is walking to the hotel easy?",
+              "answers": [
+                "because the luggage is light",
+                "the luggage is light",
+                "because Momo's luggage is light"
+              ]
+            }
+          ]
+        },
+        "writing": {
+          "task1": {
+            "title": "Travel message",
+            "prompt": "Write to a friend about a short trip. Say when you leave, how you travel and where you will stay.",
+            "target": "80–100 words",
+            "template": [
+              "Hi ...",
+              "I'm going to ...",
+              "I will leave at ...",
+              "I'm travelling by ...",
+              "I'm staying at ...",
+              "See you soon,",
+              "Momo"
+            ]
+          }
+        }
+      },
+      "5": {
+        "cefr": "A2",
+        "topic": "School and communication",
+        "vocabulary": [
+          [
+            "lesson",
+            "bài học",
+            "The lesson starts at eight."
+          ],
+          [
+            "homework",
+            "bài tập về nhà",
+            "I finished my homework before dinner."
+          ],
+          [
+            "dictionary",
+            "từ điển",
+            "Use a dictionary to check the word."
+          ],
+          [
+            "message",
+            "tin nhắn",
+            "Emma sent a message this morning."
+          ],
+          [
+            "email",
+            "thư điện tử",
+            "Please send the file by email."
+          ],
+          [
+            "website",
+            "trang web",
+            "The school website has the timetable."
+          ],
+          [
+            "practice",
+            "luyện tập",
+            "Daily practice helps you improve."
+          ],
+          [
+            "mistake",
+            "lỗi",
+            "It is normal to make a mistake."
+          ],
+          [
+            "improve",
+            "cải thiện",
+            "Reading often can improve your English."
+          ]
+        ],
+        "reading": {
+          "title": "Learning Online",
+          "passage": "Lily gives Momo a short lesson about studying English online. She says a dictionary can help with new words, but learners should also read examples. Momo writes new words in a notebook and sends Lily an email with two questions. Lily replies that regular practice is more important than avoiding every mistake.",
+          "questions": [
+            {
+              "type": "true_false_not_given",
+              "prompt": "Lily says learners should only use a dictionary.",
+              "answer": "False"
+            },
+            {
+              "type": "completion",
+              "prompt": "Momo sends Lily an ____ with two questions.",
+              "answers": [
+                "email",
+                "e-mail"
+              ]
+            },
+            {
+              "type": "short_answer",
+              "prompt": "What does Lily say is more important than avoiding every mistake?",
+              "answers": [
+                "regular practice",
+                "practice",
+                "regular practice is more important"
+              ]
+            }
+          ]
+        },
+        "writing": {
+          "task1": {
+            "title": "Study email",
+            "prompt": "Write an email to Lily asking for advice on improving your English. Mention one problem and one thing you already do to practise.",
+            "target": "80–100 words",
+            "template": [
+              "Dear Lily,",
+              "I'm writing because ...",
+              "My main problem is ...",
+              "At the moment, I ...",
+              "Could you suggest ...?",
+              "Best wishes,",
+              "Momo"
+            ]
+          }
+        }
+      }
+    },
+    "normal": {
+      "1": {
+        "cefr": "B1",
+        "topic": "Work and study",
+        "vocabulary": [
+          [
+            "deadline",
+            "hạn chót",
+            "The deadline for the report is Friday."
+          ],
+          [
+            "schedule",
+            "lịch trình",
+            "I changed my schedule to attend the meeting."
+          ],
+          [
+            "colleague",
+            "đồng nghiệp",
+            "My colleague helped with the presentation."
+          ],
+          [
+            "assignment",
+            "bài tập được giao",
+            "The assignment requires three sources."
+          ],
+          [
+            "revise",
+            "ôn tập; chỉnh sửa",
+            "I revise my notes before the test."
+          ],
+          [
+            "focus",
+            "tập trung",
+            "Turn off notifications so you can focus."
+          ],
+          [
+            "feedback",
+            "phản hồi",
+            "The teacher gave useful feedback."
+          ],
+          [
+            "progress",
+            "tiến bộ",
+            "Regular practice leads to steady progress."
+          ],
+          [
+            "responsibility",
+            "trách nhiệm",
+            "Managing the records is my responsibility."
+          ]
+        ],
+        "reading": {
+          "title": "A New Study Plan",
+          "passage": "Momo has been missing deadlines because farm work often changes the daily schedule. Lily suggests dividing large assignments into smaller tasks and reviewing progress every evening. Momo agrees to try the plan for two weeks and asks Lily for feedback at the end of the trial.",
+          "questions": [
+            {
+              "type": "true_false_not_given",
+              "prompt": "Momo has never missed a deadline.",
+              "answer": "False"
+            },
+            {
+              "type": "matching",
+              "prompt": "Who suggests dividing assignments into smaller tasks?",
+              "choices": [
+                "Momo",
+                "Lily",
+                "Mia"
+              ],
+              "answer": "Lily"
+            },
+            {
+              "type": "short_answer",
+              "prompt": "How long will Momo try the new plan?",
+              "answers": [
+                "two weeks",
+                "2 weeks"
+              ]
+            }
+          ]
+        },
+        "writing": {
+          "task1": {
+            "title": "Advice email",
+            "prompt": "Write an email to Lily about a problem with your study schedule. Explain the problem, describe what you have tried and ask for advice.",
+            "target": "100–120 words",
+            "template": [
+              "Dear Lily,",
+              "I'm writing to ask for advice about ...",
+              "The main difficulty is ...",
+              "So far, I have tried ...",
+              "Could you suggest ...?",
+              "Best wishes,",
+              "Momo"
+            ]
+          },
+          "task2": {
+            "title": "Opinion paragraph",
+            "prompt": "Some learners prefer studying alone, while others prefer studying with friends. Give your opinion and support it with reasons and examples.",
+            "target": "140–180 words",
+            "template": [
+              "Introduction: state your opinion.",
+              "Body 1: first reason + example.",
+              "Body 2: second reason + example.",
+              "Conclusion: restate your view."
+            ]
+          }
+        }
+      },
+      "2": {
+        "cefr": "B1",
+        "topic": "Health and lifestyle",
+        "vocabulary": [
+          [
+            "balanced",
+            "cân bằng",
+            "A balanced diet includes different food groups."
+          ],
+          [
+            "habit",
+            "thói quen",
+            "Walking after dinner is a healthy habit."
+          ],
+          [
+            "recover",
+            "hồi phục",
+            "Tom needs time to recover after the illness."
+          ],
+          [
+            "symptom",
+            "triệu chứng",
+            "A fever can be a symptom of infection."
+          ],
+          [
+            "treatment",
+            "điều trị",
+            "The doctor explained the treatment clearly."
+          ],
+          [
+            "prevent",
+            "ngăn ngừa",
+            "Good sleep can help prevent exhaustion."
+          ],
+          [
+            "stress",
+            "căng thẳng",
+            "Too much stress can affect sleep."
+          ],
+          [
+            "routine",
+            "thói quen hằng ngày",
+            "A regular routine makes planning easier."
+          ],
+          [
+            "energy",
+            "năng lượng",
+            "Breakfast gives me energy for the morning."
+          ]
+        ],
+        "reading": {
+          "title": "Changing a Routine",
+          "passage": "After several weeks of feeling tired, Tom decides to change his routine. He goes to bed earlier, eats a more balanced breakfast and takes short walks instead of working through every break. After a month, he has more energy and feels less stressed, although he still has busy days.",
+          "questions": [
+            {
+              "type": "true_false_not_given",
+              "prompt": "Tom completely stops having busy days.",
+              "answer": "False"
+            },
+            {
+              "type": "completion",
+              "prompt": "Tom takes short ____ instead of working through every break.",
+              "answers": [
+                "walks",
+                "walk"
+              ]
+            },
+            {
+              "type": "short_answer",
+              "prompt": "What two improvements does Tom notice after a month?",
+              "answers": [
+                "more energy and less stress",
+                "he has more energy and feels less stressed",
+                "more energy, less stress"
+              ]
+            }
+          ]
+        },
+        "writing": {
+          "task1": {
+            "title": "Health advice letter",
+            "prompt": "Write to a friend who often feels tired. Suggest two realistic lifestyle changes and explain why they may help.",
+            "target": "100–120 words",
+            "template": [
+              "Hi ...",
+              "I'm sorry to hear that ...",
+              "You could ... because ...",
+              "It might also help to ...",
+              "Take care,",
+              "Momo"
+            ]
+          },
+          "task2": {
+            "title": "Discussion essay",
+            "prompt": "Some people think schools should teach students more about healthy lifestyles. Discuss this view and give your opinion.",
+            "target": "160–190 words",
+            "template": [
+              "Introduction",
+              "Reason 1 + example",
+              "Reason 2 + example",
+              "Your opinion",
+              "Conclusion"
+            ]
+          }
+        }
+      },
+      "3": {
+        "cefr": "B2",
+        "topic": "Technology and communication",
+        "vocabulary": [
+          [
+            "device",
+            "thiết bị",
+            "The device stores the farm records."
+          ],
+          [
+            "privacy",
+            "quyền riêng tư",
+            "Users should understand the privacy settings."
+          ],
+          [
+            "reliable",
+            "đáng tin cậy",
+            "We need a reliable internet connection."
+          ],
+          [
+            "update",
+            "cập nhật",
+            "The app received a security update."
+          ],
+          [
+            "access",
+            "quyền truy cập",
+            "Only staff have access to the account."
+          ],
+          [
+            "efficient",
+            "hiệu quả",
+            "The new system is more efficient."
+          ],
+          [
+            "feature",
+            "tính năng",
+            "The latest feature helps users organise tasks."
+          ],
+          [
+            "network",
+            "mạng lưới",
+            "The network was unavailable for an hour."
+          ],
+          [
+            "respond",
+            "phản hồi",
+            "Please respond to the message by noon."
+          ]
+        ],
+        "reading": {
+          "title": "A Digital Booking System",
+          "passage": "Mia introduces an online booking system so customers can reserve produce before market day. She believes the system will reduce queues and help the farm plan deliveries more efficiently. However, some customers are concerned about privacy and prefer to order in person. Mia decides to keep both options during a three-month trial.",
+          "questions": [
+            {
+              "type": "yes_no_not_given",
+              "prompt": "Mia believes the online system will make planning more efficient.",
+              "answer": "Yes"
+            },
+            {
+              "type": "true_false_not_given",
+              "prompt": "All customers prefer online booking.",
+              "answer": "False"
+            },
+            {
+              "type": "short_answer",
+              "prompt": "How long will Mia keep both ordering options during the trial?",
+              "answers": [
+                "three months",
+                "3 months"
+              ]
+            }
+          ]
+        },
+        "writing": {
+          "task1": {
+            "title": "Formal email",
+            "prompt": "Write a formal email to Mia giving feedback on the new booking system. Mention one advantage, one concern and one suggestion.",
+            "target": "120–150 words",
+            "template": [
+              "Dear Mia,",
+              "I am writing to provide feedback on ...",
+              "One clear advantage is ...",
+              "However, I am concerned that ...",
+              "I would therefore suggest ...",
+              "Yours sincerely,",
+              "Momo"
+            ]
+          },
+          "task2": {
+            "title": "Advantages and disadvantages essay",
+            "prompt": "Online services are replacing face-to-face services in many areas of daily life. Discuss the advantages and disadvantages.",
+            "target": "200–230 words",
+            "template": [
+              "Introduction",
+              "Advantages",
+              "Disadvantages",
+              "Evaluation",
+              "Conclusion"
+            ]
+          }
+        }
+      },
+      "4": {
+        "cefr": "B2",
+        "topic": "Environment and society",
+        "vocabulary": [
+          [
+            "resource",
+            "tài nguyên",
+            "Water is a limited resource in dry seasons."
+          ],
+          [
+            "waste",
+            "chất thải; lãng phí",
+            "The farm is trying to reduce food waste."
+          ],
+          [
+            "conserve",
+            "bảo tồn; tiết kiệm",
+            "We should conserve water during droughts."
+          ],
+          [
+            "impact",
+            "tác động",
+            "Transport has an environmental impact."
+          ],
+          [
+            "policy",
+            "chính sách",
+            "The town introduced a recycling policy."
+          ],
+          [
+            "community",
+            "cộng đồng",
+            "The community planted trees near the river."
+          ],
+          [
+            "renewable",
+            "tái tạo được",
+            "Solar power is a renewable source of energy."
+          ],
+          [
+            "emission",
+            "khí thải",
+            "The project aims to reduce emissions."
+          ],
+          [
+            "awareness",
+            "nhận thức",
+            "The campaign raised awareness of plastic waste."
+          ]
+        ],
+        "reading": {
+          "title": "The Town Recycling Plan",
+          "passage": "The town council proposes a recycling plan that would require households to separate paper, glass and food waste. Supporters argue that the policy could reduce landfill use and raise environmental awareness. Critics agree with the goal but worry that the collection schedule may be inconvenient for older residents. The council plans to test the system in two neighbourhoods before expanding it.",
+          "questions": [
+            {
+              "type": "yes_no_not_given",
+              "prompt": "Supporters believe the plan could reduce landfill use.",
+              "answer": "Yes"
+            },
+            {
+              "type": "matching",
+              "prompt": "Who worries about the collection schedule?",
+              "choices": [
+                "supporters",
+                "critics",
+                "the recycling company"
+              ],
+              "answer": "critics"
+            },
+            {
+              "type": "completion",
+              "prompt": "The council will first test the system in two ____.",
+              "answers": [
+                "neighbourhoods",
+                "neighborhoods"
+              ]
+            }
+          ]
+        },
+        "writing": {
+          "task1": {
+            "title": "Letter to the council",
+            "prompt": "Write a formal letter to the town council about the recycling plan. State your position, identify one practical concern and suggest a solution.",
+            "target": "130–160 words",
+            "template": [
+              "Dear Sir or Madam,",
+              "I am writing regarding ...",
+              "I support / have concerns about ...",
+              "One practical issue is ...",
+              "I suggest that ...",
+              "Yours faithfully,",
+              "Momo"
+            ]
+          },
+          "task2": {
+            "title": "Problem–solution essay",
+            "prompt": "Many towns are producing more household waste than before. What problems does this create, and what solutions could local authorities introduce?",
+            "target": "220–250 words",
+            "template": [
+              "Introduction",
+              "Problems",
+              "Solutions",
+              "Evaluation",
+              "Conclusion"
+            ]
+          }
+        }
+      },
+      "5": {
+        "cefr": "B2",
+        "topic": "Media and public information",
+        "vocabulary": [
+          [
+            "headline",
+            "tiêu đề tin",
+            "The headline attracted a lot of attention."
+          ],
+          [
+            "source",
+            "nguồn tin",
+            "Check the source before sharing the story."
+          ],
+          [
+            "claim",
+            "tuyên bố; khẳng định",
+            "The article makes a strong claim."
+          ],
+          [
+            "evidence",
+            "bằng chứng",
+            "The report provides evidence for the conclusion."
+          ],
+          [
+            "bias",
+            "thiên kiến",
+            "Readers should be aware of possible bias."
+          ],
+          [
+            "accurate",
+            "chính xác",
+            "The figures must be accurate."
+          ],
+          [
+            "misleading",
+            "gây hiểu lầm",
+            "The advertisement was technically true but misleading."
+          ],
+          [
+            "publish",
+            "xuất bản",
+            "The newspaper published a correction."
+          ],
+          [
+            "verify",
+            "xác minh",
+            "Always verify important information."
+          ]
+        ],
+        "reading": {
+          "title": "Checking a Viral Story",
+          "passage": "A story about a new farming law spreads quickly on social media. The headline is dramatic, but the article does not link to the original policy document. Emma checks the council website and discovers that the law has not yet been approved. She posts a correction and explains why readers should verify claims before sharing them.",
+          "questions": [
+            {
+              "type": "yes_no_not_given",
+              "prompt": "Emma thinks readers should verify claims before sharing them.",
+              "answer": "Yes"
+            },
+            {
+              "type": "true_false_not_given",
+              "prompt": "The farming law has already been approved.",
+              "answer": "False"
+            },
+            {
+              "type": "matching",
+              "prompt": "Where does Emma check the information?",
+              "choices": [
+                "the council website",
+                "a private message",
+                "a printed dictionary"
+              ],
+              "answer": "the council website"
+            }
+          ]
+        },
+        "writing": {
+          "task1": {
+            "title": "Correction email",
+            "prompt": "Write an email to a community group correcting a misleading story. Explain what was inaccurate, give the verified information and advise readers what to do next.",
+            "target": "130–160 words",
+            "template": [
+              "Dear members,",
+              "I am writing to clarify ...",
+              "The earlier message stated that ...",
+              "However, the verified information is ...",
+              "Please ...",
+              "Best regards,",
+              "Momo"
+            ]
+          },
+          "task2": {
+            "title": "Opinion essay",
+            "prompt": "People increasingly get news from social media rather than traditional news organisations. To what extent is this a positive development?",
+            "target": "220–250 words",
+            "template": [
+              "Introduction + position",
+              "Benefit",
+              "Risk",
+              "Evaluation",
+              "Conclusion"
+            ]
+          }
+        }
+      }
+    },
+    "hard": {
+      "1": {
+        "cefr": "C1",
+        "topic": "Academic work and professional development",
+        "vocabulary": [
+          [
+            "rigorous",
+            "chặt chẽ",
+            "The team used a rigorous method to evaluate the results."
+          ],
+          [
+            "criterion",
+            "tiêu chí",
+            "Cost is only one criterion in the final decision."
+          ],
+          [
+            "synthesise",
+            "tổng hợp",
+            "The report synthesises evidence from several studies."
+          ],
+          [
+            "feasible",
+            "khả thi",
+            "The proposal is ambitious but technically feasible."
+          ],
+          [
+            "allocate",
+            "phân bổ",
+            "The manager allocated more time to training."
+          ],
+          [
+            "substantiate",
+            "chứng minh bằng bằng chứng",
+            "The author must substantiate the claim with evidence."
+          ],
+          [
+            "coherent",
+            "mạch lạc",
+            "The argument is clear and coherent."
+          ],
+          [
+            "implication",
+            "hàm ý; hệ quả",
+            "The findings have important policy implications."
+          ],
+          [
+            "evaluate",
+            "đánh giá",
+            "We need to evaluate both benefits and risks."
+          ]
+        ],
+        "reading": {
+          "title": "Evaluating a Training Programme",
+          "passage": "A cooperative introduces a six-week training programme designed to improve staff communication. The initial survey suggests higher confidence, but the evaluators caution that self-reported confidence is not equivalent to measurable performance. They recommend combining surveys with observed tasks and follow-up interviews before deciding whether the programme should be expanded.",
+          "questions": [
+            {
+              "type": "yes_no_not_given",
+              "prompt": "The evaluators consider self-reported confidence sufficient evidence of improved performance.",
+              "answer": "No"
+            },
+            {
+              "type": "matching",
+              "prompt": "Which method is suggested in addition to surveys?",
+              "choices": [
+                "observed tasks",
+                "advertising",
+                "salary reviews"
+              ],
+              "answer": "observed tasks"
+            },
+            {
+              "type": "short_answer",
+              "prompt": "What decision will the extra evidence help inform?",
+              "answers": [
+                "whether the programme should be expanded",
+                "whether to expand the programme",
+                "programme expansion"
+              ]
+            }
+          ]
+        },
+        "writing": {
+          "task1": {
+            "title": "Professional recommendation",
+            "prompt": "Write a formal email to the cooperative manager recommending how the training programme should be evaluated before expansion.",
+            "target": "150–180 words",
+            "template": [
+              "Dear ...",
+              "Purpose",
+              "Evidence currently available",
+              "Limitations",
+              "Recommended evaluation methods",
+              "Recommendation",
+              "Yours sincerely,",
+              "Momo"
+            ]
+          },
+          "task2": {
+            "title": "Critical discussion essay",
+            "prompt": "Organisations often evaluate training using participants' satisfaction rather than long-term performance. Discuss the limitations of this approach and propose a more rigorous alternative.",
+            "target": "240–280 words",
+            "template": [
+              "Introduction",
+              "Critique of satisfaction measures",
+              "Alternative evidence",
+              "Implementation considerations",
+              "Conclusion"
+            ]
+          }
+        }
+      },
+      "2": {
+        "cefr": "C1",
+        "topic": "Relationships and social behaviour",
+        "vocabulary": [
+          [
+            "rapport",
+            "mối quan hệ hòa hợp",
+            "Good rapport makes difficult conversations easier."
+          ],
+          [
+            "resentment",
+            "sự oán giận",
+            "Unresolved conflict can create resentment."
+          ],
+          [
+            "tactful",
+            "khéo léo",
+            "A tactful reply can reduce tension."
+          ],
+          [
+            "compromise",
+            "thỏa hiệp",
+            "Both sides accepted a reasonable compromise."
+          ],
+          [
+            "perception",
+            "nhận thức",
+            "Public perception changed after the meeting."
+          ],
+          [
+            "misunderstanding",
+            "sự hiểu lầm",
+            "The argument began with a misunderstanding."
+          ],
+          [
+            "reconcile",
+            "hòa giải",
+            "The two partners tried to reconcile after the dispute."
+          ],
+          [
+            "withdrawn",
+            "khép kín",
+            "He became withdrawn after the disagreement."
+          ],
+          [
+            "mutual",
+            "lẫn nhau",
+            "The agreement depends on mutual trust."
+          ]
+        ],
+        "reading": {
+          "title": "Resolving a Team Conflict",
+          "passage": "Two members of the market team disagree about how customer complaints should be handled. What begins as a procedural dispute becomes personal because each interprets the other's short messages as dismissive. Clara asks them to meet face to face, identify the underlying concerns and agree on a shared response policy. The meeting does not remove every disagreement, but it restores enough trust for the team to continue working effectively.",
+          "questions": [
+            {
+              "type": "yes_no_not_given",
+              "prompt": "Clara believes the conflict is purely personal.",
+              "answer": "No"
+            },
+            {
+              "type": "completion",
+              "prompt": "The disagreement began as a ____ dispute.",
+              "answers": [
+                "procedural"
+              ]
+            },
+            {
+              "type": "short_answer",
+              "prompt": "What does the meeting restore?",
+              "answers": [
+                "enough trust",
+                "trust",
+                "enough trust for the team to continue working effectively"
+              ]
+            }
+          ]
+        },
+        "writing": {
+          "task1": {
+            "title": "Mediation email",
+            "prompt": "Write a tactful email to two colleagues after a disagreement. Summarise the shared concern, suggest a compromise and propose a next step.",
+            "target": "160–190 words",
+            "template": [
+              "Dear ...",
+              "I appreciate that ...",
+              "It seems the central issue is ...",
+              "A possible compromise would be ...",
+              "I suggest that we ...",
+              "Kind regards,",
+              "Momo"
+            ]
+          },
+          "task2": {
+            "title": "Argument essay",
+            "prompt": "Some people argue that workplace conflict is beneficial because it encourages better decisions. Others believe it mainly damages cooperation. Discuss both views and give your opinion.",
+            "target": "250–290 words",
+            "template": [
+              "Introduction",
+              "View 1",
+              "View 2",
+              "Your evaluation",
+              "Conclusion"
+            ]
+          }
+        }
+      },
+      "3": {
+        "cefr": "C1",
+        "topic": "Technology, media and evidence",
+        "vocabulary": [
+          [
+            "algorithm",
+            "thuật toán",
+            "The platform uses an algorithm to rank posts."
+          ],
+          [
+            "scrutinise",
+            "xem xét kỹ",
+            "Researchers scrutinised the data before publishing."
+          ],
+          [
+            "credible",
+            "đáng tin",
+            "A credible source explains how its evidence was collected."
+          ],
+          [
+            "distort",
+            "bóp méo",
+            "Selective statistics can distort public understanding."
+          ],
+          [
+            "transparent",
+            "minh bạch",
+            "The system should be transparent about how decisions are made."
+          ],
+          [
+            "vulnerability",
+            "điểm yếu; lỗ hổng",
+            "The update fixed a serious security vulnerability."
+          ],
+          [
+            "authenticate",
+            "xác thực",
+            "Users must authenticate their identity."
+          ],
+          [
+            "disseminate",
+            "phổ biến",
+            "Social networks disseminate information rapidly."
+          ],
+          [
+            "accountability",
+            "trách nhiệm giải trình",
+            "Public accountability requires clear records."
+          ]
+        ],
+        "reading": {
+          "title": "Automated Recommendations",
+          "passage": "A local platform begins using an algorithm to recommend news and community notices. Although engagement rises, researchers warn that the system may repeatedly show users material similar to what they already prefer. The platform responds by publishing a transparency note and adding controls that allow users to adjust recommendation settings. Critics welcome the change but argue that independent auditing is still necessary.",
+          "questions": [
+            {
+              "type": "yes_no_not_given",
+              "prompt": "Researchers believe higher engagement proves the recommendation system is beneficial.",
+              "answer": "No"
+            },
+            {
+              "type": "matching",
+              "prompt": "What does the platform add for users?",
+              "choices": [
+                "recommendation controls",
+                "mandatory subscriptions",
+                "printed reports"
+              ],
+              "answer": "recommendation controls"
+            },
+            {
+              "type": "short_answer",
+              "prompt": "What additional measure do critics still want?",
+              "answers": [
+                "independent auditing",
+                "an independent audit",
+                "independent audits"
+              ]
+            }
+          ]
+        },
+        "writing": {
+          "task1": {
+            "title": "Policy feedback",
+            "prompt": "Write a formal response to the platform. Evaluate the transparency measures and recommend one additional safeguard.",
+            "target": "170–200 words",
+            "template": [
+              "Dear ...",
+              "I welcome ...",
+              "Nevertheless ...",
+              "The main risk is ...",
+              "I therefore recommend ...",
+              "Yours sincerely,",
+              "Momo"
+            ]
+          },
+          "task2": {
+            "title": "Discursive essay",
+            "prompt": "Recommendation algorithms make information more convenient but may narrow what users see. Discuss the extent to which platforms should be responsible for preventing this effect.",
+            "target": "260–300 words",
+            "template": [
+              "Introduction + thesis",
+              "Convenience benefits",
+              "Risks to information diversity",
+              "Responsibility and safeguards",
+              "Conclusion"
+            ]
+          }
+        }
+      },
+      "4": {
+        "cefr": "C2",
+        "topic": "Society, policy and complex trade-offs",
+        "vocabulary": [
+          [
+            "nuanced",
+            "tinh tế; nhiều sắc thái",
+            "The issue requires a nuanced response rather than a simple ban."
+          ],
+          [
+            "contentious",
+            "gây tranh cãi",
+            "The proposal remains politically contentious."
+          ],
+          [
+            "disproportionate",
+            "không cân xứng",
+            "The rule may place a disproportionate burden on small firms."
+          ],
+          [
+            "mitigate",
+            "giảm nhẹ",
+            "Subsidies could mitigate the short-term costs."
+          ],
+          [
+            "unintended",
+            "không chủ ý",
+            "The policy produced several unintended consequences."
+          ],
+          [
+            "equitable",
+            "công bằng",
+            "An equitable system should protect vulnerable groups."
+          ],
+          [
+            "trade-off",
+            "sự đánh đổi",
+            "There is a trade-off between speed and thorough consultation."
+          ],
+          [
+            "implementation",
+            "việc triển khai",
+            "Poor implementation can weaken a good policy."
+          ],
+          [
+            "contingent",
+            "phụ thuộc điều kiện",
+            "The final decision is contingent on funding."
+          ]
+        ],
+        "reading": {
+          "title": "Restricting Delivery Traffic",
+          "passage": "The town is considering restrictions on delivery vehicles in the central market district. Supporters expect cleaner air and safer streets, while small businesses argue that fixed delivery windows could raise costs and reduce flexibility. A pilot scheme would exempt low-emission vehicles and provide shared loading areas. Whether the policy succeeds will depend less on the headline restriction than on how exemptions, enforcement and infrastructure are implemented.",
+          "questions": [
+            {
+              "type": "yes_no_not_given",
+              "prompt": "The writer suggests implementation details may be more important than the headline restriction.",
+              "answer": "Yes"
+            },
+            {
+              "type": "true_false_not_given",
+              "prompt": "All delivery vehicles would be completely banned under the pilot scheme.",
+              "answer": "False"
+            },
+            {
+              "type": "short_answer",
+              "prompt": "Name one feature of the pilot scheme designed to reduce the burden on businesses.",
+              "answers": [
+                "low-emission vehicle exemptions",
+                "exemptions for low-emission vehicles",
+                "shared loading areas",
+                "shared loading area"
+              ]
+            }
+          ]
+        },
+        "writing": {
+          "task1": {
+            "title": "Consultation response",
+            "prompt": "Write a formal consultation response on the proposed delivery restrictions. Acknowledge the environmental objective, assess the burden on small businesses and recommend implementation safeguards.",
+            "target": "180–210 words",
+            "template": [
+              "To whom it may concern,",
+              "Purpose and position",
+              "Benefits",
+              "Potential disproportionate effects",
+              "Safeguards",
+              "Conclusion",
+              "Yours faithfully,",
+              "Momo"
+            ]
+          },
+          "task2": {
+            "title": "Policy evaluation essay",
+            "prompt": "Environmental policies often impose short-term costs on individuals or businesses. To what extent should governments accept these costs in pursuit of long-term public benefits?",
+            "target": "280–320 words",
+            "template": [
+              "Introduction",
+              "Case for accepting costs",
+              "Limits and equity concerns",
+              "Conditions for justified intervention",
+              "Conclusion"
+            ]
+          }
+        }
+      },
+      "5": {
+        "cefr": "C2",
+        "topic": "Academic argument and style",
+        "vocabulary": [
+          [
+            "premise",
+            "tiền đề",
+            "The argument rests on a questionable premise."
+          ],
+          [
+            "counterargument",
+            "phản biện đối lập",
+            "A strong essay addresses the main counterargument."
+          ],
+          [
+            "qualify",
+            "giới hạn mức độ khẳng định",
+            "The author qualifies the claim by noting two exceptions."
+          ],
+          [
+            "infer",
+            "suy luận",
+            "We can infer the likely outcome from the pattern."
+          ],
+          [
+            "ambiguity",
+            "sự mơ hồ",
+            "The wording creates unnecessary ambiguity."
+          ],
+          [
+            "concede",
+            "thừa nhận một phần",
+            "The writer concedes that the policy has some benefits."
+          ],
+          [
+            "corroborate",
+            "xác nhận bằng bằng chứng bổ sung",
+            "Later evidence corroborated the initial finding."
+          ],
+          [
+            "tentative",
+            "thận trọng; chưa chắc chắn",
+            "The conclusion remains tentative because the sample is small."
+          ],
+          [
+            "paradigm",
+            "khuôn mẫu tư duy",
+            "The technology may require a different business paradigm."
+          ]
+        ],
+        "reading": {
+          "title": "Interpreting Limited Evidence",
+          "passage": "A small pilot study reports that learners who used a game-based vocabulary tool remembered more words after one week than learners who used a conventional list. The result is promising, but the groups were not randomly assigned and the study did not measure retention after several months. The authors therefore describe the findings as preliminary and call for larger controlled studies before making broad claims about effectiveness.",
+          "questions": [
+            {
+              "type": "yes_no_not_given",
+              "prompt": "The authors believe the pilot study proves long-term superiority of game-based learning.",
+              "answer": "No"
+            },
+            {
+              "type": "completion",
+              "prompt": "The groups were not randomly ____.",
+              "answers": [
+                "assigned"
+              ]
+            },
+            {
+              "type": "short_answer",
+              "prompt": "Why do the authors call for larger controlled studies?",
+              "answers": [
+                "before making broad claims about effectiveness",
+                "to make broader claims about effectiveness",
+                "because the current findings are preliminary",
+                "because the pilot has limitations"
+              ]
+            }
+          ]
+        },
+        "writing": {
+          "task1": {
+            "title": "Academic-style summary email",
+            "prompt": "Write to a project supervisor summarising the study's main finding, two limitations and an appropriate next research step.",
+            "target": "180–220 words",
+            "template": [
+              "Dear ...",
+              "The study suggests that ...",
+              "However, two limitations are ...",
+              "These limitations mean that ...",
+              "I recommend ...",
+              "Kind regards,",
+              "Momo"
+            ]
+          },
+          "task2": {
+            "title": "Evidence-based essay",
+            "prompt": "Educational technology should be adopted only when strong evidence shows that it improves learning outcomes. Critically evaluate this statement.",
+            "target": "300–340 words",
+            "template": [
+              "Introduction + qualified thesis",
+              "Argument for strong evidence",
+              "Reasons controlled experimentation may be difficult",
+              "A balanced adoption framework",
+              "Conclusion"
+            ]
+          }
+        }
+      }
+    }
+  }
+}
