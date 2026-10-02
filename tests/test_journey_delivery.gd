@@ -55,6 +55,25 @@ func run()->void:
  assert(g.player.visible,"Momo must be visible again after delivery")
  assert(g.nav.has_walkable_step(g.player.global_position),"Momo must be able to move after delivery")
 
+  # A completed order must be repeatable without resetting or changing save format.
+ assert(g.state.order_stage==2,"First delivery leaves order in completed state")
+ g.state.produce=3
+ var second_cards:int=g.state.cards
+ var second_wood:int=g.state.wood
+ var second_friend:int=int(g.state.friendship.get("mia",0))
+ assert(g.state.accept_order(),"Completed Mia order must allow accepting a second order")
+ assert(g.state.order_stage==1,"Second order becomes active")
+ g.begin_delivery()
+ assert(g.state.delivery_active,"Second delivery must start")
+ g.tick_delivery(12.1)
+ assert(not g.state.delivery_active,"Second delivery must complete")
+ assert(g.state.produce==0,"Second delivery consumes exactly 3 carrots")
+ assert(g.state.cards==second_cards+8,"Second delivery rewards another 8 cards")
+ assert(g.state.wood==second_wood+5,"Second delivery rewards another 5 wood")
+ assert(int(g.state.friendship.get("mia",0))==second_friend+1,"Second delivery increases Mia friendship again")
+ assert(g.state.order_stage==2,"Second order returns to completed state")
+ assert(g.nav.has_walkable_step(g.player.global_position),"Momo must still be movable after second delivery")
+
  print("JOURNEY_DELIVERY_PASSED")
  g.queue_free()
  await process_frame
