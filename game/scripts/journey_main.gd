@@ -841,7 +841,8 @@ func interact_npc(id:String)->void:
   "mia":
    line("Mia cần 3 củ cà rốt. Giao đủ để nhận cards, gỗ và tình bạn.")
    make_button(body,"Nhận đơn hàng",func():
-    message("Đã nhận đơn! Chuẩn bị 3 củ cà rốt." if state.accept_order() else "Đơn đã được nhận hoặc hoàn thành.")
+    var accepted:bool=state.accept_order()
+    message("Đã nhận đơn mới! Chuẩn bị 3 củ cà rốt." if accepted else "Bạn đang có một đơn giao cà rốt chưa hoàn tất.")
     changed())
    make_button(body,"Chất hàng • 3 cà rốt",begin_delivery)
   "emma":
