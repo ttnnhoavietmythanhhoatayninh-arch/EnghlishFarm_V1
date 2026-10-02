@@ -5,7 +5,7 @@ func _initialize()->void:
 
 func run()->void:
  assert(ResourceLoader.exists("res://game/assets/vehicles/carrot_delivery_truck.svg"),"Carrot truck sprite asset must exist")
-  var g=load("res://game/scenes/Journey.tscn").instantiate()
+ var g=load("res://game/scenes/Journey.tscn").instantiate()
  g.persistence_enabled=false
  root.add_child(g)
  await process_frame
@@ -60,7 +60,7 @@ func run()->void:
  assert(g.player.visible,"Momo must be visible again after delivery")
  assert(g.nav.has_walkable_step(g.player.global_position),"Momo must be able to move after delivery")
 
-  # A completed order must be repeatable without resetting or changing save format.
+ # A completed order must be repeatable without resetting or changing save format.
  assert(g.state.order_stage==2,"First delivery leaves order in completed state")
  g.state.produce=3
  var second_cards:int=g.state.cards
