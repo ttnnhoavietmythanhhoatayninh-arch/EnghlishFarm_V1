@@ -7,7 +7,7 @@ var friendship:Dictionary={}
 var demo_mode:=true
 var letter_draft:=""
 func accept_order()->bool:
- if order_stage!=0:return false
+ if order_stage not in [0,2]:return false
  order_stage=1
  return true
 func deliver_order()->bool:
