@@ -1205,15 +1205,38 @@ func begin_delivery()->void:
  changed()
  notify("Xe đang chở 3 củ cà rốt tới Chợ. Thưởng chỉ nhận khi xe đến nơi.")
 
+func truck_route_distance()->float:
+ var total:=0.0
+ for i in range(1,truck_route.size()):
+  total+=truck_route[i-1].distance_to(truck_route[i])
+ return total
+
+func sample_truck_route(progress:float)->Vector2:
+ if truck_route.is_empty():return Vector2.ZERO
+ if truck_route.size()==1:return truck_route[0]
+ var total:=truck_route_distance()
+ if total<=0.001:return truck_route[truck_route.size()-1]
+ var target:=clampf(progress,0.0,1.0)*total
+ var walked:=0.0
+ for i in range(1,truck_route.size()):
+  var a:Vector2=truck_route[i-1]
+  var b:Vector2=truck_route[i]
+  var seg:=a.distance_to(b)
+  if walked+seg>=target:
+   var local:float=0.0 if seg<=0.001 else (target-walked)/seg
+   return a.lerp(b,local)
+  walked+=seg
+ return truck_route[truck_route.size()-1]
+
 func tick_delivery(delta:float)->void:
  if not state.delivery_active:return
  if truck_route.is_empty() and not prepare_truck_route():return
  state.delivery_seconds+=delta
  var t:float=clampf(state.delivery_seconds/12.0,0,1)
- var offset:float=t*(truck_route.size()-1)
- var a:=int(floor(offset))
- var b:=mini(a+1,truck_route.size()-1)
- truck.position=truck_route[a].lerp(truck_route[b],offset-a)
+ var next_pos:Vector2=sample_truck_route(t)
+ var delta_move:Vector2=next_pos-truck.position
+ truck.position=next_pos
+ truck.set_motion(delta_move,delta)
  truck.z_index=int(truck.position.y)+1
  truck.show()
  player.global_position=truck.position
