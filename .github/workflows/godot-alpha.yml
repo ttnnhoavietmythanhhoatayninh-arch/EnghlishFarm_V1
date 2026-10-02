@@ -37,9 +37,14 @@ jobs:
           godot --headless --path . --editor --quit 2>&1 | tee import.log
           ! grep -Eq 'SCRIPT ERROR:|Parse Error:|ERROR:' import.log
 
+      - name: Install Python test runner dependency
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq python3
+          python3 --version
+
       - name: Run all test suites and stop on first error
         run: |
-          python3 --version
           python3 tools/run_tests.py --godot godot
 
       - name: Install virtual display for visual checks
